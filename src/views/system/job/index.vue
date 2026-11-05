@@ -35,7 +35,7 @@
           </template>
         </el-table-column>
       </template>
-      <el-table-column v-if="canEdit || canDelete" label="操作" width="140" align="center" fixed="right">
+      <el-table-column v-if="canEdit || canDelete" label="操作" align="center" fixed="right">
         <template #default="scope">
           <el-button v-if="canEdit" type="primary" icon="IconEdit" aria-label="编辑岗位" @click="openEdit(scope.row)" />
           <el-button v-if="canDelete" type="danger" icon="IconDelete" aria-label="删除岗位" @click="removeJobs([scope.row])" />

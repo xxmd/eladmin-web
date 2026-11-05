@@ -186,7 +186,6 @@
           <el-table-column
             v-if="checkPer(['admin','user:edit','user:del'])"
             label="操作"
-            width="115"
             align="center"
             fixed="right"
           >

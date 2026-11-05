@@ -85,7 +85,7 @@
       </el-table-column>
       <el-table-column v-if="crud.columnVisible('description')" :show-overflow-tooltip="true" prop="description" width="150px" label="描述" />
       <el-table-column v-if="crud.columnVisible('createTime')" :show-overflow-tooltip="true" prop="createTime" width="136px" label="创建日期" />
-      <el-table-column v-if="checkPer(['admin','timing:edit','timing:del'])" label="操作" width="170px" align="center" fixed="right">
+      <el-table-column v-if="checkPer(['admin','timing:edit','timing:del'])" label="操作" align="center" fixed="right">
         <template #default="scope">
           <el-button v-permission="['admin','timing:edit']" style="margin-right: 3px;" type="primary" link @click="crud.toEdit(scope.row)">编辑</el-button>
           <el-button v-permission="['admin','timing:edit']" style="margin-left: -2px" type="primary" link @click="execute(scope.row.id)">执行</el-button>

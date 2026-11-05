@@ -52,7 +52,7 @@
       <el-table-column v-if="crud.columnVisible('jdbcUrl')" prop="jdbcUrl" label="连接地址" />
       <el-table-column v-if="crud.columnVisible('userName')" prop="userName" width="200px" label="用户名" />
       <el-table-column v-if="crud.columnVisible('createTime')" prop="createTime" width="200px" label="创建日期" />
-      <el-table-column v-if="checkPer(['admin','database:edit','database:del'])" label="操作" width="150px" align="center">
+      <el-table-column v-if="checkPer(['admin','database:edit','database:del'])" label="操作" align="center">
         <template #default="scope">
           <udOperation
             :data="scope.row"

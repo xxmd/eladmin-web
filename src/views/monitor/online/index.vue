@@ -31,7 +31,7 @@
       <el-table-column v-if="crud.columnVisible('address')" :show-overflow-tooltip="true" prop="address" label="登录地点" />
       <el-table-column v-if="crud.columnVisible('browser')" prop="browser" label="浏览器" />
       <el-table-column v-if="crud.columnVisible('loginTime')" prop="loginTime" label="登录时间" />
-      <el-table-column label="操作" width="70px" fixed="right">
+      <el-table-column label="操作" fixed="right">
         <template #default="scope">
           <el-popover
             :ref="scope.$index"

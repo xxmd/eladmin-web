@@ -91,7 +91,7 @@
       <el-table-column v-if="crud.columnVisible('app.name')" prop="app.name" label="应用名称" />
       <el-table-column v-if="crud.columnVisible('servers')" prop="servers" label="服务器列表" />
       <el-table-column v-if="crud.columnVisible('createTime')" prop="createTime" label="部署日期" />
-      <el-table-column v-if="checkPer(['admin','deploy:edit','deploy:del'])" label="操作" width="150px" align="center">
+      <el-table-column v-if="checkPer(['admin','deploy:edit','deploy:del'])" label="操作" align="center">
         <template #default="scope">
           <udOperation
             :data="scope.row"

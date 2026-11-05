@@ -28,7 +28,7 @@
       <el-table-column v-if="crud.columnVisible('coding')" :show-overflow-tooltip="true" prop="coding" label="字符编码集" />
       <el-table-column v-if="crud.columnVisible('remark')" :show-overflow-tooltip="true" prop="remark" label="备注" />
       <el-table-column v-if="crud.columnVisible('createTime')" prop="createTime" label="创建日期" />
-      <el-table-column label="操作" width="160px" align="center" fixed="right">
+      <el-table-column label="操作" align="center" fixed="right">
         <template #default="scope">
           <el-button style="margin-right: 2px" type="primary" link>
             <router-link :to="'/sys-tools/generator/preview/' + scope.row.tableName">

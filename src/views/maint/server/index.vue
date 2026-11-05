@@ -43,7 +43,7 @@
       <el-table-column v-if="crud.columnVisible('port')" prop="port" label="端口" />
       <el-table-column v-if="crud.columnVisible('account')" prop="account" label="账号" />
       <el-table-column v-if="crud.columnVisible('createTime')" prop="createTime" label="创建日期" />
-      <el-table-column v-if="checkPer(['admin','serverDeploy:edit','serverDeploy:del'])" label="操作" width="150px" align="center">
+      <el-table-column v-if="checkPer(['admin','serverDeploy:edit','serverDeploy:del'])" label="操作" align="center">
         <template #default="scope">
           <udOperation
             :data="scope.row"

@@ -133,8 +133,8 @@
           <span v-else>是</span>
         </template>
       </el-table-column>
-      <el-table-column v-if="crud.columnVisible('createTime')" prop="createTime" label="创建日期" width="135px" />
-      <el-table-column v-if="checkPer(['admin','menu:edit','menu:del'])" label="操作" width="130px" align="center" fixed="right">
+      <el-table-column v-if="crud.columnVisible('createTime')" prop="createTime" label="创建日期" />
+      <el-table-column v-if="checkPer(['admin','menu:edit','menu:del'])" label="操作" align="center" fixed="right">
         <template #default="scope">
           <udOperation
             :data="scope.row"

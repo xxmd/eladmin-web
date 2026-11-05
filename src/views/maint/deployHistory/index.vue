@@ -17,7 +17,7 @@
       <el-table-column v-if="crud.columnVisible('ip')" prop="ip" label="部署IP" />
       <el-table-column v-if="crud.columnVisible('deployUser')" prop="deployUser" label="部署人员" />
       <el-table-column v-if="crud.columnVisible('deployDate')" prop="deployDate" label="部署时间" />
-      <el-table-column v-if="checkPer(['admin','deployHistory:del'])" label="操作" width="100px" align="center">
+      <el-table-column v-if="checkPer(['admin','deployHistory:del'])" label="操作" align="center">
         <template #default="scope">
           <el-popover
             :ref="scope.row.id"

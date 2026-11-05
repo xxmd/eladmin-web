@@ -40,7 +40,7 @@
             :on-error="handleError"
             :action="fileUploadApi + '?name=' + form.name"
           >
-            <div class="eladmin-upload"><IconUpload class="legacy-icon " /> 添加文件</div>
+            <div class="eladmin-upload"><el-icon><UploadFilled /></el-icon><span>添加文件</span></div>
             <template #tip><div  class="el-upload__tip">可上传任意格式文件，且不超过100M</div></template>
           </el-upload>
         </el-form-item>
@@ -105,6 +105,7 @@
 import type { UploadFile, UploadRawFile, UploadInstance } from 'element-plus'
 import type { EntityId } from '@/types/api'
 import { defineComponent } from 'vue'
+import { UploadFilled } from '@element-plus/icons-vue'
 import { mapGetters } from 'vuex'
 import { getToken } from '@/utils/auth'
 import crudFile from '@/api/tools/localStorage'
@@ -118,7 +119,7 @@ import DateRangePicker from '@/components/DateRangePicker/index.vue'
 
 const defaultForm: LocalFileForm = { id: null, name: '' }
 export default defineComponent({
-  components: { pagination, crudOperation, rrOperation, DateRangePicker },
+  components: { pagination, crudOperation, rrOperation, DateRangePicker, UploadFilled },
   cruds() {
     return CRUD<LocalFile, LocalFileForm>({ title: '文件', url: 'api/localStorage', crudMethod: { edit: crudFile.edit, del: crudFile.del }})
   },

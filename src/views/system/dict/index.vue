@@ -33,7 +33,7 @@
             <el-table-column type="selection" width="55" />
             <el-table-column v-if="crud.columnVisible('name')" :show-overflow-tooltip="true" prop="name" label="名称" />
             <el-table-column v-if="crud.columnVisible('description')" :show-overflow-tooltip="true" prop="description" label="描述" />
-            <el-table-column v-if="checkPer(['admin','dict:edit','dict:del'])" label="操作" width="130px" align="center" fixed="right">
+            <el-table-column v-if="checkPer(['admin','dict:edit','dict:del'])" label="操作" align="center" fixed="right">
               <template #default="scope">
                 <udOperation
                   :data="scope.row"

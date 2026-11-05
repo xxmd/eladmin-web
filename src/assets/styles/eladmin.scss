@@ -82,6 +82,10 @@
   width: 100%;
 }
 .eladmin-upload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   border: 1px dashed #c0ccda;
   border-radius: 5px;
   height: 45px;

@@ -69,7 +69,7 @@
               </template>
             </el-table-column>
             <el-table-column v-if="crud.columnVisible('createTime')" :show-overflow-tooltip="true" width="135px" prop="createTime" label="创建日期" />
-            <el-table-column v-if="checkPer(['admin','roles:edit','roles:del'])" label="操作" width="130px" align="center" fixed="right">
+            <el-table-column v-if="checkPer(['admin','roles:edit','roles:del'])" label="操作" align="center" fixed="right">
               <template #default="scope">
                 <udOperation
                   v-if="scope.row.level >= level"
