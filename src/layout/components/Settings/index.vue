@@ -27,10 +27,11 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import ThemePicker from '@/components/ThemePicker/index.vue'
 
-export default {
+export default defineComponent({
   components: { ThemePicker },
   data() {
     return {}
@@ -40,7 +41,7 @@ export default {
       get() {
         return this.$store.state.settings.fixedHeader
       },
-      set(val) {
+      set(val: boolean) {
         this.$store.dispatch('settings/changeSetting', {
           key: 'fixedHeader',
           value: val
@@ -51,7 +52,7 @@ export default {
       get() {
         return this.$store.state.settings.tagsView
       },
-      set(val) {
+      set(val: boolean) {
         this.$store.dispatch('settings/changeSetting', {
           key: 'tagsView',
           value: val
@@ -62,7 +63,7 @@ export default {
       get() {
         return this.$store.state.settings.sidebarLogo
       },
-      set(val) {
+      set(val: boolean) {
         this.$store.dispatch('settings/changeSetting', {
           key: 'sidebarLogo',
           value: val
@@ -71,14 +72,14 @@ export default {
     }
   },
   methods: {
-    themeChange(val) {
+    themeChange(val: string) {
       this.$store.dispatch('settings/changeSetting', {
         key: 'theme',
         value: val
       })
     }
   }
-}
+})
 </script>
 
 <style lang="scss" scoped>

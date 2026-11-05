@@ -2,13 +2,15 @@
   <div :class="className" :style="{height:height,width:width}" />
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
 import { markRaw } from 'vue'
 import * as echarts from 'echarts'
 import 'echarts/theme/macarons.js' // echarts theme
 import resize from './mixins/resize'
 
-export default {
+interface ChartData { expectedData: number[]; actualData: number[] }
+export default defineComponent({
   mixins: [resize],
   props: {
     className: {
@@ -28,13 +30,13 @@ export default {
       default: true
     },
     chartData: {
-      type: Object,
+      type: Object as PropType<ChartData>,
       required: true
     }
   },
   data() {
     return {
-      chart: null
+      chart: null as echarts.ECharts | null
     }
   },
   watch: {
@@ -62,8 +64,8 @@ export default {
       this.chart = markRaw(echarts.init(this.$el, 'macarons'))
       this.setOptions(this.chartData)
     },
-    setOptions({ expectedData, actualData } = {}) {
-      this.chart.setOption({
+    setOptions({ expectedData, actualData }: ChartData) {
+      this.chart?.setOption({
         xAxis: {
           data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
           boundaryGap: false,
@@ -132,5 +134,5 @@ export default {
       })
     }
   }
-}
+})
 </script>

@@ -2,6 +2,7 @@ import { get } from '@/api/system/dictDetail'
 import type { DictEntry } from '@/types/api'
 
 export interface DictState {
+  user_status?: DictEntry[]; dept_status?: DictEntry[]; job_status?: DictEntry[]; user_sex?: DictEntry[]
   dict: Record<string, Record<string, DictEntry>>
   label: Record<string, Record<string, string>>
   [name: string]: unknown

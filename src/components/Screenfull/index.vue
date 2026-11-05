@@ -4,10 +4,11 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import screenfull from 'screenfull'
 
-export default {
+export default defineComponent({
   name: 'Screenfull',
   data() {
     return {
@@ -22,7 +23,7 @@ export default {
   },
   methods: {
     click() {
-      if (!screenfull.enabled) {
+      if (!screenfull || !screenfull.enabled) {
         this.$message({
           message: 'you browser can not work',
           type: 'warning'
@@ -32,20 +33,20 @@ export default {
       screenfull.toggle()
     },
     change() {
-      this.isFullscreen = screenfull.isFullscreen
+      this.isFullscreen = !!screenfull && screenfull.isFullscreen
     },
     init() {
-      if (screenfull.enabled) {
+      if (screenfull && screenfull.enabled) {
         screenfull.on('change', this.change)
       }
     },
     destroy() {
-      if (screenfull.enabled) {
+      if (screenfull && screenfull.enabled) {
         screenfull.off('change', this.change)
       }
     }
   }
-}
+})
 </script>
 
 <style scoped>

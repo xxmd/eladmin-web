@@ -20,22 +20,13 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import type { FormInstance } from 'element-plus'
+import { defineComponent } from 'vue'
 import store from '@/store'
 import { updatePass } from '@/api/system/user'
-export default {
+export default defineComponent({
   data() {
-    const confirmPass = (rule, value, callback) => {
-      if (value) {
-        if (this.form.newPass !== value) {
-          callback(new Error('两次输入的密码不一致'))
-        } else {
-          callback()
-        }
-      } else {
-        callback(new Error('请再次输入密码'))
-      }
-    }
     return {
       loading: false, dialog: false, title: '修改密码', form: { oldPass: '', newPass: '', confirmPass: '' },
       rules: {
@@ -47,17 +38,28 @@ export default {
           { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
         ],
         confirmPass: [
-          { required: true, validator: confirmPass, trigger: 'blur' }
+          { required: true, validator: this.confirmPass, trigger: 'blur' }
         ]
       }
     }
   },
   methods: {
+    confirmPass(rule: unknown, value: string, callback: (error?: Error) => void) {
+      if (value) {
+        if (this.form.newPass !== value) {
+          callback(new Error('两次输入的密码不一致'))
+        } else {
+          callback()
+        }
+      } else {
+        callback(new Error('请再次输入密码'))
+      }
+    },
     cancel() {
       this.resetForm()
     },
     doSubmit() {
-      this.$refs['form'].validate((valid) => {
+      ;(this.$refs.form as FormInstance).validate((valid) => {
         if (valid) {
           this.loading = true
           updatePass(this.form).then(res => {
@@ -77,17 +79,17 @@ export default {
             console.log(err.response.data.message)
           })
         } else {
-          return false
+          return
         }
       })
     },
     resetForm() {
       this.dialog = false
-      this.$refs['form'].resetFields()
+      ;(this.$refs.form as FormInstance).resetFields()
       this.form = { oldPass: '', newPass: '', confirmPass: '' }
     }
   }
-}
+})
 </script>
 
 <style scoped>

@@ -53,20 +53,24 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import crudDictDetail from '@/api/system/dictDetail'
-import CRUD, { presenter, header, form } from '@crud/crud'
+import CRUD, { crudBindings } from '@crud/crud'
+import type { DictDetailForm } from '@/types/business'
+import type { DictEntry, EntityId } from '@/types/api'
+const { presenter, header, form } = crudBindings<DictEntry, DictDetailForm>()
 import pagination from '@crud/Pagination.vue'
 import rrOperation from '@crud/RR.operation.vue'
 import udOperation from '@crud/UD.operation.vue'
 
-const defaultForm = { id: null, label: null, value: null, dictSort: 999 }
+const defaultForm: DictDetailForm = { id: null, label: '', value: '', dictSort: 999 }
 
-export default {
+export default defineComponent({
   components: { pagination, rrOperation, udOperation },
   cruds() {
     return [
-      CRUD({ title: '字典详情', url: 'api/dictDetail', query: { dictName: '' }, sort: ['dictSort,asc', 'id,desc'],
+      CRUD<DictEntry, DictDetailForm>({ title: '字典详情', url: 'api/dictDetail', query: { dictName: '' }, sort: ['dictSort,asc', 'id,desc'],
         crudMethod: { ...crudDictDetail },
         optShow: {
           add: true,
@@ -81,12 +85,12 @@ export default {
   mixins: [
     presenter(),
     header(),
-    form(function() {
+    form(function(this: { dictId: EntityId | null }) {
       return Object.assign({ dict: { id: this.dictId }}, defaultForm)
     })],
   data() {
     return {
-      dictId: null,
+      dictId: null as EntityId | null,
       rules: {
         label: [
           { required: true, message: '请输入字典标签', trigger: 'blur' }
@@ -105,7 +109,7 @@ export default {
       }
     }
   }
-}
+})
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>

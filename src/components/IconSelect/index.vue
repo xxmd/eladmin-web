@@ -13,9 +13,10 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import icons from './requireIcons'
-export default {
+export default defineComponent({
   name: 'IconSelect',
   data() {
     return {
@@ -30,7 +31,7 @@ export default {
         this.iconList = this.iconList.filter(item => item.includes(this.name))
       }
     },
-    selectedIcon(name) {
+    selectedIcon(name: string) {
       this.$emit('selected', name)
       document.body.click()
     },
@@ -39,7 +40,7 @@ export default {
       this.iconList = icons
     }
   }
-}
+})
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>

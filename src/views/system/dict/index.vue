@@ -52,13 +52,13 @@
           <template #header><div  class="clearfix">
             <span>字典详情</span>
             <el-button
-              v-if="checkPer(['admin','dict:add']) && this.$refs.dictDetail && this.$refs.dictDetail.query.dictName"
+              v-if="checkPer(['admin','dict:add']) && selectedDictionary"
               class="filter-item"
 
               style="float: right;padding: 4px 10px"
               type="primary"
               icon="IconPlus"
-              @click="$refs.dictDetail && $refs.dictDetail.crud.toAdd()"
+              @click="addDetail()"
             >新增</el-button>
           </div></template>
           <dictDetail ref="dictDetail" :permission="permission" />
@@ -68,28 +68,33 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import dictDetail from './dictDetail.vue'
 import crudDict from '@/api/system/dict'
-import CRUD, { presenter, header, form } from '@crud/crud'
+import CRUD, { crudBindings, type CrudController } from '@crud/crud'
+import type { Dictionary, DictionaryForm } from '@/types/business'
+const { presenter, header, form } = crudBindings<Dictionary, DictionaryForm>()
+type PageCrud = CrudController<Dictionary, DictionaryForm>
 import crudOperation from '@crud/CRUD.operation.vue'
 import pagination from '@crud/Pagination.vue'
 import rrOperation from '@crud/RR.operation.vue'
 import udOperation from '@crud/UD.operation.vue'
 
-const defaultForm = { id: null, name: null, description: null, dictDetails: [] }
+const defaultForm: DictionaryForm = { id: null, name: '', description: null }
 
-export default {
+export default defineComponent({
   name: 'Dict',
   components: { crudOperation, pagination, rrOperation, udOperation, dictDetail },
   cruds() {
     return [
-      CRUD({ title: '字典', url: 'api/dict', crudMethod: { ...crudDict }})
+      CRUD<Dictionary, DictionaryForm>({ title: '字典', url: 'api/dict', crudMethod: { ...crudDict }})
     ]
   },
   mixins: [presenter(), header(), form(defaultForm)],
   data() {
     return {
+      selectedDictionary: false,
       queryTypeOptions: [
         { key: 'name', display_name: '字典名称' },
         { key: 'description', display_name: '描述' }
@@ -107,28 +112,30 @@ export default {
     }
   },
   methods: {
+    addDetail() { (this.$refs.dictDetail as InstanceType<typeof dictDetail>).crud.toAdd() },
     // 获取数据前设置好接口地址
     [CRUD.HOOK.beforeRefresh]() {
       if (this.$refs.dictDetail) {
-        this.$refs.dictDetail.query.dictName = ''
+        ;(this.$refs.dictDetail as InstanceType<typeof dictDetail>).query.dictName = ''
       }
       return true
     },
     // 选中字典后，设置字典详情数据
-    handleCurrentChange(val) {
+    handleCurrentChange(val: Dictionary | null) {
+      this.selectedDictionary = !!val
       if (val) {
-        this.$refs.dictDetail.query.dictName = val.name
-        this.$refs.dictDetail.dictId = val.id
-        this.$refs.dictDetail.crud.toQuery()
+        ;(this.$refs.dictDetail as InstanceType<typeof dictDetail>).query.dictName = val.name
+        ;(this.$refs.dictDetail as InstanceType<typeof dictDetail>).dictId = val.id
+        ;(this.$refs.dictDetail as InstanceType<typeof dictDetail>).crud.toQuery()
       }
     },
     // 编辑前将字典明细临时清空，避免日志入库数据过长
-    [CRUD.HOOK.beforeToEdit](crud, form) {
+    [CRUD.HOOK.beforeToEdit](crud: PageCrud, form: DictionaryForm) {
       // 将角色的菜单清空，避免日志入库数据过长
       form.dictDetails = null
     }
   }
-}
+})
 </script>
 
 <style scoped>

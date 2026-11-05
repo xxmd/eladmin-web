@@ -50,20 +50,23 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 
 import { generator, sync } from '@/api/generator/generator'
 import { downloadFile } from '@/utils/index'
-import CRUD, { presenter, header } from '@crud/crud'
+import CRUD, { crudBindings } from '@crud/crud'
+import type { GeneratorTable } from '@/types/business'
+const { presenter, header } = crudBindings<GeneratorTable>()
 import rrOperation from '@crud/RR.operation.vue'
 import crudOperation from '@crud/CRUD.operation.vue'
 import pagination from '@crud/Pagination.vue'
 
-export default {
+export default defineComponent({
   name: 'GeneratorIndex',
   components: { pagination, crudOperation, rrOperation },
   cruds() {
-    return CRUD({ url: 'api/generator/tables' })
+    return CRUD<GeneratorTable>({ url: 'api/generator/tables', idField: 'tableName' })
   },
   mixins: [presenter(), header()],
   data() {
@@ -72,10 +75,10 @@ export default {
     }
   },
   created() {
-    this.crud.optShow = { add: false, edit: false, del: false, download: false }
+    this.crud.optShow = { add: false, edit: false, del: false, download: false, reset: false }
   },
   methods: {
-    toGen(tableName) {
+    toGen(tableName: string) {
       // 生成代码
       generator(tableName, 0).then(data => {
         this.$notify({
@@ -85,14 +88,14 @@ export default {
         })
       })
     },
-    toDownload(tableName) {
+    toDownload(tableName: string) {
       // 打包下载
       generator(tableName, 2).then(data => {
         downloadFile(data, tableName, 'zip')
       })
     },
     sync() {
-      const tables = []
+      const tables: string[] = []
       this.crud.selections.forEach(val => {
         tables.push(val.tableName)
       })
@@ -106,7 +109,7 @@ export default {
       })
     }
   }
-}
+})
 </script>
 
 <style scoped>

@@ -2,14 +2,15 @@
   <div :class="className" :style="{height:height,width:width}" />
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import { markRaw } from 'vue'
 import * as echarts from 'echarts'
 
 import 'echarts/theme/macarons.js' // echarts theme
 import { debounce } from '@/utils'
 
-export default {
+export default defineComponent({
   props: {
     className: {
       type: String,
@@ -26,50 +27,42 @@ export default {
   },
   data() {
     return {
-      chart: null
+      chart: null as echarts.ECharts | null,
+      resizeHandler: () => {}
     }
   },
   mounted() {
     this.initChart()
-    this.__resizeHandler = debounce(() => {
+    this.resizeHandler = debounce(() => {
       if (this.chart) {
         this.chart.resize()
       }
     }, 100)
-    window.addEventListener('resize', this.__resizeHandler)
+    window.addEventListener('resize', this.resizeHandler)
   },
   beforeUnmount() {
     if (!this.chart) {
       return
     }
-    window.removeEventListener('resize', this.__resizeHandler)
+    window.removeEventListener('resize', this.resizeHandler)
     this.chart.dispose()
     this.chart = null
   },
   methods: {
     initChart() {
       this.chart = markRaw(echarts.init(this.$el, 'macarons'))
-      const dataMap = {}
+      const dataMap: Record<string, Record<number, { name: string; value: number }[]> & Record<`${number}sum` | `${number}max`, number>> = {}
 
-      function dataFormatter(obj) {
+      function dataFormatter(obj: Record<number, number[]>) {
         const pList = ['北京', '天津', '河北', '山西', '内蒙古', '辽宁', '吉林', '黑龙江', '上海', '江苏', '浙江', '安徽', '福建', '江西', '山东', '河南', '湖北', '湖南', '广东', '广西', '海南', '重庆', '四川', '贵州', '云南', '西藏', '陕西', '甘肃', '青海', '宁夏', '新疆']
-        let temp
+        const result: Record<number, { name: string; value: number }[]> & Record<`${number}sum` | `${number}max`, number> = {}
         for (let year = 2002; year <= 2011; year++) {
-          let max = 0
-          let sum = 0
-          temp = obj[year]
-          for (let i = 0, l = temp.length; i < l; i++) {
-            max = Math.max(max, temp[i])
-            sum += temp[i]
-            obj[year][i] = {
-              name: pList[i],
-              value: temp[i]
-            }
-          }
-          obj[year + 'max'] = Math.floor(max / 100) * 100
-          obj[year + 'sum'] = sum
+          const values = obj[year]
+          result[year] = values.map((value, index) => ({ name: pList[index], value }))
+          result[`${year}max`] = Math.floor(Math.max(...values) / 100) * 100
+          result[`${year}sum`] = values.reduce((sum, value) => sum + value, 0)
         }
-        return obj
+        return result
       }
 
       dataMap.dataGDP = dataFormatter({
@@ -150,7 +143,7 @@ export default {
         2002: [561.91, 76.86, 179.6, 124.1, 48.39, 137.18, 75.45, 31.6, 485.25, 368.86, 347.53, 81.85, 138.28, 76.51, 310.07, 158.77, 96.95, 92.43, 454.65, 35.86, 10.08, 134.52, 183.13, 41.45, 102.39, 2.81, 67.3, 42.08, 16.75, 21.45, 52.18]
       })
 
-      this.chart.setOption({
+      const option: echarts.EChartsOption = {
         baseOption: {
           timeline: {
             axisType: 'category',
@@ -160,27 +153,21 @@ export default {
               '2002-01-01', '2003-01-01', '2004-01-01',
               {
                 value: '2005-01-01',
-                tooltip: {
-                  formatter: '{b} GDP达到一个高度'
-                },
+                tooltip: true,
                 symbol: 'diamond',
                 symbolSize: 16
               },
               '2006-01-01', '2007-01-01', '2008-01-01', '2009-01-01', '2010-01-01',
               {
                 value: '2011-01-01',
-                tooltip: {
-                  formatter: function(params) {
-                    return params.name + 'GDP达到又一个高度'
-                  }
-                },
+                tooltip: true,
                 symbol: 'diamond',
                 symbolSize: 18
               }
             ],
             label: {
-              formatter: function(s) {
-                return (new Date(s)).getFullYear()
+              formatter: function(s: string | number) {
+                return String((new Date(s)).getFullYear())
               }
             }
           },
@@ -189,7 +176,7 @@ export default {
           },
           tooltip: {},
           legend: {
-            x: 'right',
+            right: 0,
             data: ['第一产业', '第二产业', '第三产业', 'GDP', '金融', '房地产'],
             selected: {
               'GDP': false, '金融': false, '房地产': false
@@ -205,7 +192,7 @@ export default {
                 type: 'shadow',
                 label: {
                   show: true,
-                  formatter: function(params) {
+                  formatter: function(params: { value: string }) {
                     return params.value.replace('\n', '')
                   }
                 }
@@ -432,8 +419,9 @@ export default {
             ]
           }
         ]
-      })
+      }
+      this.chart.setOption(option)
     }
   }
-}
+})
 </script>

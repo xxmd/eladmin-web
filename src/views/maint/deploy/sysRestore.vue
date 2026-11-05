@@ -35,14 +35,19 @@
   </el-dialog>
 </template>
 
-<script>
-import crud from '@/mixins/crud'
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
+import listMixin from '@/mixins/crud'
+import type { EntityId } from '@/types/api'
+import type { DeploymentHistory } from '@/types/business'
 import { reducte } from '@/api/maint/deployHistory'
 import DateRangePicker from '@/components/DateRangePicker/index.vue'
-export default {
+export default defineComponent({
   components: { DateRangePicker },
-  mixins: [crud],
+  mixins: [listMixin<DeploymentHistory>()],
+  emits: ['restored'],
   props: {
+    deployId: { type: [String, Number] as PropType<EntityId>, default: '' },
     appName: {
       type: String,
       default: ''
@@ -53,9 +58,9 @@ export default {
       submitLoading: false,
       dialog: false,
       history: [],
-      radio: '',
+      radio: -1,
       appNames: '',
-      selectIndex: ''
+      selectIndex: '' as EntityId
     }
   },
   created() {
@@ -66,7 +71,6 @@ export default {
   methods: {
     beforeInit() {
       this.url = 'api/deployHistory'
-      this.deployId = this.$parent.deployId
       if (this.deployId === '') {
         return false
       }
@@ -74,7 +78,7 @@ export default {
       this.params['deployId'] = this.deployId
       return true
     },
-    showRow(row) {
+    showRow(row: DeploymentHistory) {
       this.radio = this.data.indexOf(row)
       this.selectIndex = row.id
     },
@@ -87,12 +91,12 @@ export default {
         this.$message.error('请选择要还原的备份')
       } else {
         this.submitLoading = true
-        reducte(JSON.stringify(this.data[this.radio]))
+        reducte(this.data[this.radio])
           .then(res => {
             this.dialog = false
             this.submitLoading = false
             this.appNames = ''
-            this.$parent.crud.toQuery()
+            this.$emit('restored')
           })
           .catch(err => {
             this.submitLoading = false
@@ -101,7 +105,7 @@ export default {
       }
     }
   }
-}
+})
 </script>
 
 <style scoped>

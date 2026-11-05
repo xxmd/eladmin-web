@@ -57,24 +57,28 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import type { FormInstance } from 'element-plus'
+import { defineComponent } from 'vue'
 
 import crudServer from '@/api/maint/serverDeploy'
 import { testServerConnect } from '@/api/maint/connect'
 import { validateIP } from '@/utils/validate'
-import CRUD, { presenter, header, form, crud } from '@crud/crud'
+import CRUD, { crudBindings } from '@crud/crud'
+import type { DeploymentServer, DeploymentServerForm } from '@/types/business'
+const { presenter, header, form, crud } = crudBindings<DeploymentServer, DeploymentServerForm>()
 import rrOperation from '@crud/RR.operation.vue'
 import crudOperation from '@crud/CRUD.operation.vue'
 import udOperation from '@crud/UD.operation.vue'
 import pagination from '@crud/Pagination.vue'
 import DateRangePicker from '@/components/DateRangePicker/index.vue'
 
-const defaultForm = { id: null, name: null, ip: null, port: 22, account: 'root', password: null }
-export default {
+const defaultForm: DeploymentServerForm = { id: null, name: '', ip: '', port: 22, account: 'root', password: '' }
+export default defineComponent({
   name: 'Server',
   components: { pagination, crudOperation, rrOperation, udOperation, DateRangePicker },
   cruds() {
-    return CRUD({ title: '服务器', url: 'api/serverDeploy', crudMethod: { ...crudServer }})
+    return CRUD<DeploymentServer, DeploymentServerForm>({ title: '服务器', url: 'api/serverDeploy', crudMethod: { ...crudServer }})
   },
   mixins: [presenter(), header(), form(defaultForm), crud()],
   data() {
@@ -109,7 +113,7 @@ export default {
   },
   methods: {
     testConnectServer() {
-      this.$refs['form'].validate((valid) => {
+      ;(this.$refs.form as FormInstance).validate((valid) => {
         if (valid) {
           this.loading = true
           testServerConnect(this.form).then((res) => {
@@ -126,7 +130,7 @@ export default {
       })
     }
   }
-}
+})
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>

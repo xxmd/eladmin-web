@@ -53,20 +53,25 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import type { UploadFile } from 'element-plus'
+import type { EntityId } from '@/types/api'
+import { defineComponent } from 'vue'
 import s3Storage from '@/api/tools/s3Storage'
 import { mapGetters } from 'vuex'
 import { getToken } from '@/utils/auth'
-import CRUD, { presenter, header, crud } from '@crud/crud'
+import CRUD, { crudBindings } from '@crud/crud'
+import type { StorageObject } from '@/types/business'
+const { presenter, header, crud } = crudBindings<StorageObject>()
 import rrOperation from '@crud/RR.operation.vue'
 import crudOperation from '@crud/CRUD.operation.vue'
 import pagination from '@crud/Pagination.vue'
 import DateRangePicker from '@/components/DateRangePicker/index.vue'
 
-export default {
+export default defineComponent({
   components: { pagination, crudOperation, rrOperation, DateRangePicker },
   cruds() {
-    return CRUD({ title: '对象存储', url: 'api/s3Storage', crudMethod: { ...s3Storage }})
+    return CRUD<StorageObject>({ title: '对象存储', url: 'api/s3Storage', crudMethod: { ...s3Storage }})
   },
   mixins: [presenter(), header(), crud()],
   data() {
@@ -77,7 +82,7 @@ export default {
       title: '文件', dialog: false,
       icon: 'el-icon-refresh',
       url: '', headers: { 'Authorization': getToken() },
-      dialogImageUrl: '', dialogVisible: false, fileList: [], files: [], newWin: null
+      dialogImageUrl: '', dialogVisible: false, fileList: [] as UploadFile[], files: [] as Array<{ uid: number; id: EntityId }>, newWin: null as Window | null, downloadLoading: false
     }
   },
   computed: {
@@ -101,12 +106,12 @@ export default {
     this.crud.optShow.edit = false
   },
   methods: {
-    handleSuccess(response, file, fileList) {
+    handleSuccess(response: { id: EntityId }, file: UploadFile) {
       const uid = file.uid
       const id = response.id
       this.files.push({ uid, id })
     },
-    handleBeforeRemove(file, fileList) {
+    handleBeforeRemove(file: UploadFile) {
       for (let i = 0; i < this.files.length; i++) {
         if (this.files[i].uid === file.uid) {
           s3Storage.del([this.files[i].id]).then(res => {})
@@ -114,8 +119,8 @@ export default {
         }
       }
     },
-    handlePictureCardPreview(file) {
-      this.dialogImageUrl = file.url
+    handlePictureCardPreview(file: UploadFile) {
+      this.dialogImageUrl = file.url ?? ''
       this.dialogVisible = true
     },
     // 刷新列表数据
@@ -127,12 +132,12 @@ export default {
       this.crud.toQuery()
     },
     // 监听上传失败
-    handleError(e, file, fileList) {
+    handleError(e: Error) {
       const msg = JSON.parse(e.message)
       this.crud.notify(msg.message, CRUD.NOTIFICATION_TYPE.ERROR)
     },
     // 下载文件
-    download(id) {
+    download(id: EntityId) {
       this.downloadLoading = true
       // 先打开一个空的新窗口，再请求
       this.newWin = window.open()
@@ -144,25 +149,9 @@ export default {
         console.log(err.response.data.message)
       })
     },
-    // 同步数据
-    synchronize() {
-      this.icon = 'el-icon-loading'
-      s3Storage.sync().then(res => {
-        this.icon = 'el-icon-refresh'
-        this.$message({
-          showClose: true,
-          message: '数据同步成功',
-          type: 'success',
-          duration: 1500
-        })
-        this.crud.toQuery()
-      }).catch(err => {
-        this.icon = 'el-icon-refresh'
-        console.log(err.response.data.message)
-      })
-    }
+
   }
-}
+})
 </script>
 
 <style scoped>

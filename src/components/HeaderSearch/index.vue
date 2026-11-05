@@ -17,21 +17,25 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 // fuse is a lightweight fuzzy-search module
 // make search results more in line with expectations
 import Fuse from 'fuse.js'
+import type { SelectInstance } from 'element-plus'
+import type { AppRoute } from '@/router/routers'
+interface SearchRoute { path: string; title: string[] }
 import path from 'path'
 
-export default {
+export default defineComponent({
   name: 'HeaderSearch',
   data() {
     return {
       search: '',
-      options: [],
-      searchPool: [],
+      options: [] as SearchRoute[],
+      searchPool: [] as SearchRoute[],
       show: false,
-      fuse: undefined
+      fuse: null as Fuse<SearchRoute> | null
     }
   },
   computed: {
@@ -61,15 +65,15 @@ export default {
     click() {
       this.show = !this.show
       if (this.show) {
-        this.$refs.headerSearchSelect && this.$refs.headerSearchSelect.focus()
+        ;(this.$refs.headerSearchSelect as SelectInstance | undefined)?.focus()
       }
     },
     close() {
-      this.$refs.headerSearchSelect && this.$refs.headerSearchSelect.blur()
+      ;(this.$refs.headerSearchSelect as SelectInstance | undefined)?.blur()
       this.options = []
       this.show = false
     },
-    change(val) {
+    change(val: SearchRoute) {
       if (this.ishttp(val.path)) {
         // http(s):// 路径新窗口打开
         window.open(val.path, '_blank')
@@ -82,7 +86,7 @@ export default {
         this.show = false
       })
     },
-    initFuse(list) {
+    initFuse(list: SearchRoute[]) {
       this.fuse = new Fuse(list, {
         shouldSort: true,
         threshold: 0.4,
@@ -101,8 +105,8 @@ export default {
     },
     // Filter out the routes that can be displayed in the sidebar
     // And generate the internationalized title
-    generateRoutes(routes, basePath = '/', prefixTitle = []) {
-      let res = []
+    generateRoutes(routes: AppRoute[], basePath = '/', prefixTitle: string[] = []): SearchRoute[] {
+      let res: SearchRoute[] = []
 
       for (const router of routes) {
         // skip hidden router
@@ -133,18 +137,18 @@ export default {
       }
       return res
     },
-    querySearch(query) {
+    querySearch(query: string) {
       if (query !== '') {
-        this.options = this.fuse.search(query)
+        this.options = this.fuse?.search(query) ?? []
       } else {
         this.options = []
       }
     },
-    ishttp(url) {
+    ishttp(url: string) {
       return url.indexOf('http://') !== -1 || url.indexOf('https://') !== -1
     }
   }
-}
+})
 </script>
 
 <style lang="scss" scoped>

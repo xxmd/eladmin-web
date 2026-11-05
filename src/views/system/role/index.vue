@@ -120,11 +120,17 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import crudRoles from '@/api/system/role'
 import { getDepts, getDeptSuperior } from '@/api/system/dept'
 import { getMenusTree, getChild } from '@/api/system/menu'
-import CRUD, { presenter, header, form, crud } from '@crud/crud'
+import CRUD, { crudBindings, type CrudController } from '@crud/crud'
+import type { Role, RoleForm, Department, Menu, EntityRef, LazyNode, TreeLoadOptions } from '@/types/business'
+const { presenter, header, form, crud } = crudBindings<Role, RoleForm>()
+import type { EntityId } from '@/types/api'
+import type { TreeInstance } from 'element-plus'
+type PageCrud = CrudController<Role, RoleForm>
 import rrOperation from '@crud/RR.operation.vue'
 import crudOperation from '@crud/CRUD.operation.vue'
 import udOperation from '@crud/UD.operation.vue'
@@ -134,20 +140,20 @@ import '@zanmato/vue3-treeselect/dist/vue3-treeselect.min.css'
 import { LOAD_CHILDREN_OPTIONS } from '@zanmato/vue3-treeselect'
 import DateRangePicker from '@/components/DateRangePicker/index.vue'
 
-const defaultForm = { id: null, name: null, depts: [], description: null, dataScope: '全部', level: 3 }
-export default {
+const defaultForm: RoleForm = { id: null, name: '', depts: [] as Department[], description: null, dataScope: '全部', level: 3 }
+export default defineComponent({
   name: 'Role',
   components: { Treeselect, pagination, crudOperation, rrOperation, udOperation, DateRangePicker },
   cruds() {
-    return CRUD({ title: '角色', url: 'api/roles', sort: 'level,asc', crudMethod: { ...crudRoles }})
+    return CRUD<Role, RoleForm>({ title: '角色', url: 'api/roles', sort: 'level,asc', crudMethod: { ...crudRoles }})
   },
   mixins: [presenter(), header(), form(defaultForm), crud()],
   data() {
     return {
       defaultProps: { children: 'children', label: 'label', isLeaf: 'leaf' },
       dateScopes: ['全部', '本级', '自定义'], level: 3,
-      currentId: 0, menuLoading: false, showButton: false,
-      menus: [], menuIds: [], depts: [], deptDatas: [], // 多选时使用
+      currentId: 0 as EntityId, menuLoading: false, showButton: false,
+      menus: [] as Menu[], menuIds: [] as EntityId[], depts: [] as Department[], deptDatas: [] as EntityId[], // 多选时使用
       permission: {
         add: ['admin', 'roles:add'],
         edit: ['admin', 'roles:edit'],
@@ -166,7 +172,7 @@ export default {
     })
   },
   methods: {
-    getMenuDatas(node, resolve) {
+    getMenuDatas(node: LazyNode<Menu>, resolve: (rows: Menu[]) => void) {
       setTimeout(() => {
         getMenusTree(node.data.id ? node.data.id : 0).then(res => {
           resolve(res)
@@ -174,15 +180,15 @@ export default {
       }, 100)
     },
     [CRUD.HOOK.afterRefresh]() {
-      this.$refs.menu.setCheckedKeys([])
+      ;(this.$refs.menu as TreeInstance).setCheckedKeys([])
     },
     // 新增前初始化部门信息
-    [CRUD.HOOK.beforeToAdd](crud, form) {
+    [CRUD.HOOK.beforeToAdd](crud: PageCrud, form: RoleForm) {
       this.deptDatas = []
       form.menus = null
     },
     // 编辑前初始化自定义数据权限的部门信息
-    [CRUD.HOOK.beforeToEdit](crud, form) {
+    [CRUD.HOOK.beforeToEdit](crud: PageCrud, form: RoleForm) {
       this.deptDatas = []
       if (form.dataScope === '自定义') {
         this.getSupDepts(form.depts)
@@ -195,7 +201,7 @@ export default {
       form.menus = null
     },
     // 提交前做的操作
-    [CRUD.HOOK.afterValidateCU](crud) {
+    [CRUD.HOOK.afterValidateCU](crud: PageCrud) {
       if (crud.form.dataScope === '自定义' && this.deptDatas.length === 0) {
         this.$message({
           message: '自定义数据权限不能为空',
@@ -203,7 +209,7 @@ export default {
         })
         return false
       } else if (crud.form.dataScope === '自定义') {
-        const depts = []
+        const depts: EntityRef[] = []
         this.deptDatas.forEach(function(data) {
           const dept = { id: data }
           depts.push(dept)
@@ -215,11 +221,11 @@ export default {
       return true
     },
     // 触发单选
-    handleCurrentChange(val) {
+    handleCurrentChange(val: Role | null) {
       if (val) {
         const _this = this
         // 清空菜单的选中
-        this.$refs.menu.setCheckedKeys([])
+        ;(this.$refs.menu as TreeInstance).setCheckedKeys([])
         // 保存当前的角色id
         this.currentId = val.id
         // 初始化默认选中的key
@@ -230,7 +236,7 @@ export default {
         this.showButton = true
       }
     },
-    menuChange(menu) {
+    menuChange(menu: Menu) {
       // 获取该节点的所有子节点，id 包含自身
       getChild(menu.id).then(childIds => {
         // 判断是否在 menuIds 中，如果存在则删除，否则添加
@@ -249,13 +255,13 @@ export default {
             }
           }
         }
-        this.$refs.menu.setCheckedKeys(this.menuIds)
+        ;(this.$refs.menu as TreeInstance).setCheckedKeys(this.menuIds)
       })
     },
     // 保存菜单
     saveMenu() {
       this.menuLoading = true
-      const role = { id: this.currentId, menus: [] }
+      const role = { id: this.currentId, menus: [] as EntityRef[] }
       // 得到已选中的 key 值
       this.menuIds.forEach(function(id) {
         const menu = { id: id }
@@ -293,8 +299,8 @@ export default {
         })
       })
     },
-    getSupDepts(depts) {
-      const ids = []
+    getSupDepts(depts: EntityRef[]) {
+      const ids: EntityId[] = []
       depts.forEach(dept => {
         ids.push(dept.id)
       })
@@ -304,7 +310,7 @@ export default {
         this.depts = date
       })
     },
-    buildDepts(depts) {
+    buildDepts(depts: Department[]) {
       depts.forEach(data => {
         if (data.children) {
           this.buildDepts(data.children)
@@ -315,7 +321,7 @@ export default {
       })
     },
     // 获取弹窗内部门数据
-    loadDepts({ action, parentNode, callback }) {
+    loadDepts({ action, parentNode, callback }: TreeLoadOptions<Department>) {
       if (action === LOAD_CHILDREN_OPTIONS) {
         getDepts({ enabled: true, pid: parentNode.id }).then(res => {
           parentNode.children = res.content.map(function(obj) {
@@ -336,11 +342,11 @@ export default {
         this.getDepts()
       }
     },
-    checkboxT(row) {
+    checkboxT(row: Role) {
       return row.level >= this.level
     }
   }
-}
+})
 </script>
 
 <style rel="stylesheet/scss" lang="scss">

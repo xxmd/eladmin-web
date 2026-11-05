@@ -39,11 +39,12 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import clipboard from '@/utils/clipboard'
 import svgIcons from './svg-icons'
 import elementIcons from './element-icons'
-export default {
+export default defineComponent({
   name: 'Icons',
   data() {
     return {
@@ -52,17 +53,17 @@ export default {
     }
   },
   methods: {
-    generateIconCode(symbol) {
+    generateIconCode(symbol: string) {
       return `<svg-icon icon-class="${symbol}" />`
     },
-    generateElementIconCode(symbol) {
+    generateElementIconCode(symbol: string) {
       return `<el-icon><${symbol} /></el-icon>`
     },
-    handleClipboard(text, event) {
+    handleClipboard(text: string, event: Event) {
       clipboard(text, event)
     }
   }
-}
+})
 </script>
 
 <style lang="scss" scoped>

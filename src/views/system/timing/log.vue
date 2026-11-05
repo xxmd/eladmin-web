@@ -56,12 +56,14 @@
   </el-dialog>
 </template>
 
-<script>
-import crud from '@/mixins/crud'
+<script lang="ts">
+import { defineComponent } from 'vue'
+import listMixin from '@/mixins/crud'
+import type { JobLog } from '@/types/business'
 import DateRangePicker from '@/components/DateRangePicker/index.vue'
-export default {
+export default defineComponent({
   components: { DateRangePicker },
-  mixins: [crud],
+  mixins: [listMixin<JobLog>()],
   data() {
     return {
       title: '任务日志',
@@ -85,12 +87,12 @@ export default {
       return true
     },
     // 异常详情
-    info(errorInfo) {
+    info(errorInfo: string) {
       this.errorInfo = errorInfo
       this.errorDialog = true
     }
   }
-}
+})
 </script>
 
 <style scoped>

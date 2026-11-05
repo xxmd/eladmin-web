@@ -72,7 +72,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="服务器" prop="deploys">
-          <el-select v-model="form.deploys" multiple placeholder="请选择" style="width: 370px">
+          <el-select v-model="selectedServers" multiple placeholder="请选择" style="width: 370px">
             <el-option v-for="item in servers" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
         </el-form-item>
@@ -83,7 +83,7 @@
       </div></template>
     </el-dialog>
     <!--统还原组件-->
-    <fForm ref="sysRestore" :key="times" :app-name="appName" />
+    <fForm ref="sysRestore" :key="times" :app-name="appName" :deploy-id="deployId" @restored="crud.toQuery()" />
     <dForm ref="deploy" />
     <!--表格渲染-->
     <el-table @expand-change="crud.expandChange" ref="table" v-loading="crud.loading" :data="crud.data" highlight-current-row stripe style="width: 100%" @selection-change="handleCurrentChange">
@@ -105,29 +105,34 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import crudDeploy from '@/api/maint/deploy'
 import dForm from './deploy.vue'
 import fForm from './sysRestore.vue'
-import CRUD, { presenter, header, form, crud } from '@crud/crud'
+import CRUD, { crudBindings, type CrudController } from '@crud/crud'
+import type { Deployment, DeploymentForm, DeploymentApp, DeploymentServer } from '@/types/business'
+const { presenter, header, form, crud } = crudBindings<Deployment, DeploymentForm>()
+import type { EntityId } from '@/types/api'
+type PageCrud = CrudController<Deployment, DeploymentForm>
 import rrOperation from '@crud/RR.operation.vue'
 import crudOperation from '@crud/CRUD.operation.vue'
 import udOperation from '@crud/UD.operation.vue'
 import pagination from '@crud/Pagination.vue'
 import DateRangePicker from '@/components/DateRangePicker/index.vue'
 
-const defaultForm = { id: null, app: { id: null }, deploys: [] }
-export default {
+const defaultForm: DeploymentForm = { id: null, app: { id: null }, deploys: [] }
+export default defineComponent({
   name: 'Deploy',
   components: { dForm, fForm, pagination, crudOperation, rrOperation, udOperation, DateRangePicker },
   cruds() {
-    return CRUD({ title: '部署', url: 'api/deploy', crudMethod: { ...crudDeploy }})
+    return CRUD<Deployment, DeploymentForm>({ title: '部署', url: 'api/deploy', crudMethod: { ...crudDeploy }})
   },
   mixins: [presenter(), header(), form(defaultForm), crud()],
   data() {
     return {
-      currentRow: {}, selectIndex: '', appName: '', urlHistory: '',
-      times: 0, appId: '', deployId: '', apps: [], servers: [],
+      currentRow: null as Deployment | null, selectedServers: [] as EntityId[], selectIndex: '' as EntityId, appName: '', urlHistory: '',
+      times: 0, appId: '' as EntityId, deployId: '' as EntityId, apps: [] as DeploymentApp[], servers: [] as DeploymentServer[],
       permission: {
         add: ['admin', 'deploy:add'],
         edit: ['admin', 'deploy:edit'],
@@ -149,32 +154,24 @@ export default {
       return true
     },
     // 新增编辑前做的操作
-    [CRUD.HOOK.beforeToCU](crud, form) {
+    [CRUD.HOOK.beforeToCU](crud: PageCrud, form: DeploymentForm) {
       this.initSelect()
-      const deploys = []
-      form.deploys.forEach(function(deploy, index) {
-        deploys.push(deploy.id)
-      })
-      this.form.deploys = deploys
+      this.selectedServers = form.deploys.map(deploy => deploy.id)
     },
     // 提交前
     [CRUD.HOOK.beforeSubmit]() {
-      const deploys = []
-      this.form.deploys.forEach(function(data, index) {
-        const deploy = { id: data }
-        deploys.push(deploy)
-      })
-      this.form.deploys = deploys
+      this.form.deploys = this.selectedServers.map(id => ({ id }))
       return true
     },
     deploy() {
-      this.$refs.deploy.dialog = true
-      this.$refs.deploy.deployInfo = this.currentRow
+      if (!this.currentRow) return
+      ;(this.$refs.deploy as InstanceType<typeof dForm>).dialog = true
+      ;(this.$refs.deploy as InstanceType<typeof dForm>).deployInfo = this.currentRow
     },
     sysRestore() {
-      this.$refs.sysRestore.dialog = true
+      ;(this.$refs.sysRestore as InstanceType<typeof fForm>).dialog = true
     },
-    handleCurrentChange(selection) {
+    handleCurrentChange(selection: Deployment[]) {
       this.crud.selections = selection
       if (selection.length === 1) {
         const row = selection[0]
@@ -182,15 +179,16 @@ export default {
         this.currentRow = row
         this.appName = row.app.name
         this.times = this.times + 1
-        this.appId = row.appId
+        this.appId = row.app.id
         this.deployId = row.id
       } else {
-        this.currentRow = {}
+        this.currentRow = null
         this.selectIndex = ''
       }
     },
     startServer() {
-      crudDeploy.startServer(JSON.stringify(this.currentRow))
+      if (!this.currentRow) return
+      crudDeploy.startServer(this.currentRow)
         .then(res => {
         })
         .catch(err => {
@@ -198,7 +196,8 @@ export default {
         })
     },
     stopServer() {
-      crudDeploy.stopServer(JSON.stringify(this.currentRow))
+      if (!this.currentRow) return
+      crudDeploy.stopServer(this.currentRow)
         .then(res => {
         })
         .catch(err => {
@@ -206,7 +205,8 @@ export default {
         })
     },
     serverStatus() {
-      crudDeploy.serverStatus(JSON.stringify(this.currentRow))
+      if (!this.currentRow) return
+      crudDeploy.serverStatus(this.currentRow)
         .then(res => {
         })
         .catch(err => {
@@ -222,7 +222,7 @@ export default {
       })
     }
   }
-}
+})
 </script>
 
 <style scoped>

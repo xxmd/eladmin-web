@@ -30,10 +30,11 @@ if (/(Android)/i.test(navigator.userAgent)){     // 判断是否为Android手机
   </el-tabs>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import Config from './config.vue'
 import ToPay from './toPay.vue'
-export default {
+export default defineComponent({
   name: 'AliPay',
   components: { Config, ToPay },
   data() {
@@ -41,7 +42,7 @@ export default {
       activeName: 'second'
     }
   }
-}
+})
 </script>
 
 <style scoped>

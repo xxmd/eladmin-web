@@ -4,14 +4,16 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import { markRaw } from 'vue'
 import CodeMirror from 'codemirror'
+import 'codemirror/addon/lint/lint'
 import 'codemirror/lib/codemirror.css'
 // 替换主题这里需修改名称
 import 'codemirror/theme/idea.css'
 import 'codemirror/mode/yaml/yaml'
-export default {
+export default defineComponent({
   props: {
     modelValue: {
       type: String,
@@ -24,22 +26,22 @@ export default {
   },
   data() {
     return {
-      editor: false
+      editor: null as CodeMirror.EditorFromTextArea | null
     }
   },
   watch: {
     modelValue(value) {
-      const editorValue = this.editor.getValue()
+      const editorValue = (this.editor?.getValue() ?? '')
       if (value !== editorValue) {
-        this.editor.setValue(this.modelValue)
+        this.editor?.setValue(this.modelValue)
       }
     },
     height(value) {
-      this.editor.setSize('auto', this.height)
+      this.editor?.setSize('auto', this.height)
     }
   },
   mounted() {
-    this.editor = markRaw(CodeMirror.fromTextArea(this.$refs.textarea, {
+    this.editor = markRaw(CodeMirror.fromTextArea(this.$refs.textarea as HTMLTextAreaElement, {
       mode: 'text/x-yaml',
       lineNumbers: true,
       lint: true,
@@ -49,8 +51,8 @@ export default {
       // 替换主题这里需修改名称
       theme: 'idea'
     }))
-    this.editor.setSize('auto', this.height)
-    this.editor.setValue(this.modelValue)
+    this.editor?.setSize('auto', this.height)
+    this.editor?.setValue(this.modelValue)
     this.editor.on('change', cm => {
       this.$emit('changed', cm.getValue())
       this.$emit('update:modelValue', cm.getValue())
@@ -59,10 +61,10 @@ export default {
   beforeUnmount() { this.editor?.toTextArea() },
   methods: {
     getValue() {
-      return this.editor.getValue()
+      return (this.editor?.getValue() ?? '')
     }
   }
-}
+})
 </script>
 
 <style scoped>

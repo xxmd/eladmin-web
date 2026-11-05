@@ -1,6 +1,6 @@
 <template>
   <div v-loading="!show" element-loading-text="数据加载中..." :style="!show ? 'height: 500px' : 'height: 100%'" class="app-container">
-    <div v-if="show">
+    <div v-if="show && data">
       <el-card class="box-card">
         <div style="color: #666;font-size: 13px;">
           <svg-icon icon-class="system" style="margin-right: 5px" />
@@ -134,11 +134,13 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import ECharts from 'vue-echarts'
 import 'echarts'
-import { initData } from '@/api/data'
-export default {
+import request from '@/utils/request'
+import type { ServerMonitor } from '@/types/business'
+export default defineComponent({
   name: 'ServerMonitor',
   components: {
     'v-chart': ECharts
@@ -146,9 +148,9 @@ export default {
   data() {
     return {
       show: false,
-      monitor: null,
+      monitor: undefined as number | undefined,
       url: 'api/monitor',
-      data: {},
+      data: null as ServerMonitor | null,
       cpuInfo: {
         tooltip: {
           trigger: 'axis'
@@ -156,7 +158,7 @@ export default {
         xAxis: {
           type: 'category',
           boundaryGap: false,
-          data: []
+          data: [] as string[]
         },
         yAxis: {
           type: 'value',
@@ -165,7 +167,7 @@ export default {
           interval: 20
         },
         series: [{
-          data: [],
+          data: [] as number[],
           type: 'line',
           areaStyle: {
             normal: {
@@ -189,7 +191,7 @@ export default {
         xAxis: {
           type: 'category',
           boundaryGap: false,
-          data: []
+          data: [] as string[]
         },
         yAxis: {
           type: 'value',
@@ -198,7 +200,7 @@ export default {
           interval: 20
         },
         series: [{
-          data: [],
+          data: [] as number[],
           type: 'line',
           areaStyle: {
             normal: {
@@ -230,7 +232,7 @@ export default {
   },
   methods: {
     init() {
-      initData(this.url, {}).then(data => {
+      request<ServerMonitor>({ url: this.url, method: 'get' }).then(data => {
         this.data = data
         this.show = true
         if (this.cpuInfo.xAxis.data.length >= 8) {
@@ -246,7 +248,7 @@ export default {
       })
     }
   }
-}
+})
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>

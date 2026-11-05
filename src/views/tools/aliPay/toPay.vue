@@ -18,14 +18,16 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import type { FormInstance } from 'element-plus'
+import { defineComponent } from 'vue'
 import { toAliPay } from '@/api/tools/alipay'
-export default {
+export default defineComponent({
   data() {
     return {
       url: '',
       // 新窗口的引用
-      newWin: null,
+      newWin: null as Window | null,
       loading: false, form: { subject: '', totalAmount: '', body: '' },
       rules: {
         subject: [
@@ -53,7 +55,7 @@ export default {
   },
   methods: {
     doSubmit() {
-      this.$refs['form'].validate((valid) => {
+      ;(this.$refs.form as FormInstance).validate((valid) => {
         if (valid) {
           this.loading = true
           // 先打开一个空的新窗口，再请求
@@ -74,12 +76,12 @@ export default {
             console.log(err.response.data.message)
           })
         } else {
-          return false
+          return
         }
       })
     }
   }
-}
+})
 </script>
 
 <style scoped>

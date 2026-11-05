@@ -55,19 +55,20 @@
   </el-row>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import CountTo from '@/components/CountTo/index.vue'
 
-export default {
+export default defineComponent({
   components: {
     CountTo
   },
   methods: {
-    handleSetLineChartData(type) {
+    handleSetLineChartData(type: 'newVisitis' | 'messages' | 'purchases' | 'shoppings') {
       this.$emit('handleSetLineChartData', type)
     }
   }
-}
+})
 </script>
 
 <style lang="scss" scoped>

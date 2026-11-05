@@ -9,8 +9,7 @@
       "DOM.Iterable"
     ],
     "strict": true,
-    "allowJs": true,
-    "checkJs": false,
+    "allowJs": false,
     "skipLibCheck": true,
     "noEmit": true,
     "esModuleInterop": true,
@@ -39,7 +38,6 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.vue",
-    "src/**/*.js",
     "tests/**/*.ts",
     "*.config.ts"
   ]

@@ -10,9 +10,10 @@
     @current-change="crud.pageChangeHandler"
   />
 </template>
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import { pagination } from '@crud/crud'
-export default {
+export default defineComponent({
   mixins: [pagination()]
-}
+})
 </script>

@@ -24,10 +24,11 @@
   </el-dialog>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import { mapGetters } from 'vuex'
 import { getToken } from '@/utils/auth'
-export default {
+export default defineComponent({
   props: {
     databaseInfo: {
       type: Object,
@@ -55,7 +56,7 @@ export default {
     cancel() {
       this.dialog = false
     },
-    handleSuccess(response, file, fileList) {
+    handleSuccess(response: string) {
       if (response === 'success') {
         this.$notify({
           title: '执行成功',
@@ -70,7 +71,7 @@ export default {
         })
       }
     },
-    handleError(e, file, fileList) {
+    handleError(e: Error) {
       const msg = JSON.parse(e.message)
       this.$notify({
         title: msg.message,
@@ -79,7 +80,7 @@ export default {
       })
     }
   }
-}
+})
 </script>
 
 <style scoped>

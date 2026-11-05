@@ -6,7 +6,7 @@
         ref="tag"
         :key="tag.path"
         :class="isActive(tag)?'active':''"
-        :to="{ path: tag.path, query: tag.query, fullPath: tag.fullPath }"
+        :to="{ path: tag.path, query: tag.query }"
         class="tags-view-item"
         @click.middle="closeSelectedTag(tag)"
         @contextmenu.prevent="openMenu(tag,$event)"
@@ -24,19 +24,23 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import ScrollPane from './ScrollPane.vue'
 import path from 'path'
+import type { AppRoute } from '@/router/routers'
+import type { TagView } from '@/store/modules/tagsView'
+interface TagLink { $el: HTMLElement; to: { path: string } }
 
-export default {
+export default defineComponent({
   components: { ScrollPane },
   data() {
     return {
       visible: false,
       top: 0,
       left: 0,
-      selectedTag: {},
-      affixTags: []
+      selectedTag: { path: '/', meta: {} } as TagView,
+      affixTags: [] as TagView[]
     }
   },
   computed: {
@@ -65,11 +69,11 @@ export default {
     this.addTags()
   },
   methods: {
-    isActive(route) {
+    isActive(route: TagView) {
       return route.path === this.$route.path
     },
-    filterAffixTags(routes, basePath = '/') {
-      let tags = []
+    filterAffixTags(routes: AppRoute[], basePath = '/'): TagView[] {
+      let tags: TagView[] = []
       routes.forEach(route => {
         if (route.meta && route.meta.affix) {
           const tagPath = path.resolve(basePath, route.path)
@@ -106,13 +110,13 @@ export default {
       return false
     },
     moveToCurrentTag() {
-      const tags = this.$refs.tag
+      const tags = (this.$refs.tag as TagLink[] | undefined) ?? []
       this.$nextTick(() => {
         for (const tag of tags) {
           if (tag.to.path === this.$route.path) {
-            this.$refs.scrollPane.moveToTarget(tag)
+            ;(this.$refs.scrollPane as InstanceType<typeof ScrollPane>).moveToTarget(tag)
             // when query is different then update
-            if (tag.to.fullPath !== this.$route.fullPath) {
+            if (this.visitedViews.find(view => view.path === tag.to.path)?.fullPath !== this.$route.fullPath) {
               this.$store.dispatch('tagsView/updateVisitedView', this.$route)
             }
             break
@@ -120,7 +124,7 @@ export default {
         }
       })
     },
-    refreshSelectedTag(view) {
+    refreshSelectedTag(view: TagView) {
       this.$store.dispatch('tagsView/delCachedView', view).then(() => {
         const { fullPath } = view
         this.$nextTick(() => {
@@ -130,7 +134,7 @@ export default {
         })
       })
     },
-    closeSelectedTag(view) {
+    closeSelectedTag(view: TagView) {
       this.$store.dispatch('tagsView/delView', view).then(({ visitedViews }) => {
         if (this.isActive(view)) {
           this.toLastView(visitedViews, view)
@@ -143,7 +147,7 @@ export default {
         this.moveToCurrentTag()
       })
     },
-    closeAllTags(view) {
+    closeAllTags(view: TagView) {
       this.$store.dispatch('tagsView/delAllViews').then(({ visitedViews }) => {
         if (this.affixTags.some(tag => tag.path === view.path)) {
           return
@@ -151,7 +155,7 @@ export default {
         this.toLastView(visitedViews, view)
       })
     },
-    toLastView(visitedViews, view) {
+    toLastView(visitedViews: TagView[], view: TagView) {
       const latestView = visitedViews.slice(-1)[0]
       if (latestView) {
         this.$router.push(latestView)
@@ -166,7 +170,7 @@ export default {
         }
       }
     },
-    openMenu(tag, e) {
+    openMenu(tag: TagView, e: MouseEvent) {
       const menuMinWidth = 105
       const offsetLeft = this.$el.getBoundingClientRect().left // container margin left
       const offsetWidth = this.$el.offsetWidth // container width
@@ -187,7 +191,7 @@ export default {
       this.visible = false
     }
   }
-}
+})
 </script>
 
 <style lang="scss" scoped>

@@ -24,167 +24,35 @@
   </el-dialog>
 </template>
 
-<script>
-import { add, edit, getApps, getServers } from '@/api/maint/deploy'
-import { mapGetters } from 'vuex'
+<script setup lang="ts">
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ElNotification } from 'element-plus'
+import { useStore } from '@/store'
 import { getToken } from '@/utils/auth'
-
-export default {
-  props: {},
-  data() {
-    return {
-      loading: false,
-      dialog: false,
-      apps: [],
-      servers: [],
-      headers: {
-        Authorization: getToken()
-      },
-      deployInfo: {},
-      form: {
-        id: '',
-        appId: '',
-        ip: '',
-        selectIp: []
-      },
-      rules: {}
-    }
-  },
-  computed: {
-    ...mapGetters(['deployUploadApi'])
-  },
-  created() {
-    this.initWebSocket()
-  },
-  mounted() {
-    this.initSelect()
-  },
-  methods: {
-    cancel() {
-      this.resetForm()
-    },
-    doSubmit() {
-      this.loading = true
-      if (this.isAdd) {
-        this.doAdd()
-      } else {
-        this.doEdit()
-      }
-    },
-    joinIp() {
-      this.form.ip = ''
-      this.form.selectIp.forEach(ip => {
-        if (this.form.ip !== '') {
-          this.form.ip += ','
-        }
-        this.form.ip += ip
-      })
-    },
-    doAdd() {
-      this.joinIp()
-      add(this.form)
-        .then(res => {
-          this.resetForm()
-          this.$notify({
-            title: '添加成功',
-            type: 'success',
-            duration: 2500
-          })
-          this.loading = false
-          this.$parent.init()
-        })
-        .catch(err => {
-          this.loading = false
-          console.log(err.response.data.message)
-        })
-    },
-    doEdit() {
-      this.joinIp()
-      edit(this.form)
-        .then(res => {
-          this.resetForm()
-          this.$notify({
-            title: '修改成功',
-            type: 'success',
-            duration: 2500
-          })
-          this.loading = false
-          this.$parent.init()
-        })
-        .catch(err => {
-          this.loading = false
-          console.log(err.response.data.message)
-        })
-    },
-    resetForm() {
-      this.dialog = false
-      this.$refs['form'].resetFields()
-      this.form = {
-        id: '',
-        appId: '',
-        ip: '',
-        selectIp: []
-      }
-    },
-    initSelect() {
-      getApps().then(res => {
-        this.apps = res.content
-      })
-      getServers().then(res => {
-        this.servers = res.content
-      })
-    },
-    handleSuccess(response, file, fileList) {
-      this.cancel()
-    },
-    // 监听上传失败
-    handleError(e, file, fileList) {
-      const msg = JSON.parse(e.message)
-      this.$notify({
-        title: msg.message,
-        type: 'error',
-        duration: 2500
-      })
-    },
-    initWebSocket() {
-      const base = import.meta.env.VITE_WS_API === '/' ? `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}` : import.meta.env.VITE_WS_API
-      const wsUri = base.replace(/\/$/, '') + '/webSocket/deploy'
-      this.websock = new WebSocket(wsUri)
-      this.websock.onerror = this.webSocketOnError
-      this.websock.onmessage = this.webSocketOnMessage
-    },
-    webSocketOnError(e) {
-      this.$notify({
-        title: 'WebSocket连接发生错误',
-        type: 'error',
-        duration: 0
-      })
-    },
-    webSocketOnMessage(e) {
-      const data = JSON.parse(e.data)
-      if (data.msgType === 'INFO') {
-        this.$notify({
-          title: '',
-          message: data.msg,
-          type: 'success',
-          dangerouslyUseHTMLString: true,
-          duration: 5500
-        })
-      } else if (data.msgType === 'ERROR') {
-        this.$notify({
-          title: '',
-          message: data.msg,
-          dangerouslyUseHTMLString: true,
-          type: 'error',
-          duration: 0
-        })
-      }
-    },
-    webSocketSend(agentData) {
-      this.websock.send(agentData)
-    }
+import type { Deployment } from '@/types/business'
+const dialog = ref(false)
+const form = ref({})
+const rules = {}
+const deployInfo = ref<Partial<Deployment>>({})
+const headers = { Authorization: getToken() || '' }
+const deployUploadApi = useStore().state.api.deployUploadApi
+let socket: WebSocket | undefined
+function cancel() { dialog.value = false }
+function handleSuccess() { cancel() }
+function handleError(error: Error) { ElNotification({ title: error.message, type: 'error', duration: 2500 }) }
+onMounted(() => {
+  const base = import.meta.env.VITE_WS_API === '/' ? `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}` : import.meta.env.VITE_WS_API
+  socket = new WebSocket(base.replace(/\/$/, '') + '/webSocket/deploy')
+  socket.onerror = () => ElNotification({ title: 'WebSocket连接发生错误', type: 'error', duration: 0 })
+  socket.onmessage = (event: MessageEvent<string>) => {
+    let data: unknown
+    try { data = JSON.parse(event.data) } catch { return }
+    if (!data || typeof data !== 'object' || !('msg' in data) || typeof data.msg !== 'string' || !('msgType' in data)) return
+    if (data.msgType === 'INFO' || data.msgType === 'ERROR') ElNotification({ message: data.msg, type: data.msgType === 'INFO' ? 'success' : 'error', duration: data.msgType === 'INFO' ? 5500 : 0 })
   }
-}
+})
+onBeforeUnmount(() => socket?.close())
+defineExpose({ dialog, deployInfo })
 </script>
 
 <style scoped>

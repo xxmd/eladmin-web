@@ -66,7 +66,8 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import RadarChart from '@/components/Echarts/RadarChart.vue'
 import HeatMap from '@/components/Echarts/HeatMap.vue'
 import Gauge from '@/components/Echarts/Gauge.vue'
@@ -79,7 +80,7 @@ import Scatter from '@/components/Echarts/Scatter.vue'
 import Category from '@/components/Echarts/Category.vue'
 import Point from '@/components/Echarts/Point.vue'
 
-export default {
+export default defineComponent({
   name: 'Echarts',
   components: {
     Point,
@@ -94,7 +95,7 @@ export default {
     Sankey,
     Scatter
   }
-}
+})
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>

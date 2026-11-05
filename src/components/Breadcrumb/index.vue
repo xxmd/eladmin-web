@@ -9,17 +9,20 @@
   </el-breadcrumb>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
+import type { RouteMeta, RouteLocationNormalized } from 'vue-router'
+interface Breadcrumb { path: string; name?: string | symbol | null; redirect?: string; meta: RouteMeta }
 import { compile } from 'path-to-regexp'
 
-export default {
+export default defineComponent({
   data() {
     return {
-      levelList: null
+      levelList: [] as Breadcrumb[]
     }
   },
   watch: {
-    $route(route) {
+    $route(route: RouteLocationNormalized) {
       // if you go to the redirect page, do not update the breadcrumbs
       if (route.path.startsWith('/redirect/')) {
         return
@@ -33,29 +36,29 @@ export default {
   methods: {
     getBreadcrumb() {
       // only show routes with meta.title
-      let matched = this.$route.matched.filter(item => item.meta && item.meta.title)
+      let matched: Breadcrumb[] = this.$route.matched.filter(item => item.meta && item.meta.title).map(item => ({ path: item.path, name: item.name, meta: item.meta, redirect: typeof item.redirect === 'string' ? item.redirect : undefined }))
       const first = matched[0]
 
       if (!this.isDashboard(first)) {
-        matched = [{ path: '/dashboard', meta: { title: '首页' }}].concat(matched)
+        matched = [{ path: '/dashboard', meta: { title: '首页' } }, ...matched]
       }
 
       this.levelList = matched.filter(item => item.meta && item.meta.title && item.meta.breadcrumb !== false)
     },
-    isDashboard(route) {
+    isDashboard(route?: Breadcrumb) {
       const name = route && route.name
-      if (!name) {
+      if (typeof name !== 'string') {
         return false
       }
       return name.trim().toLocaleLowerCase() === 'Dashboard'.toLocaleLowerCase()
     },
-    pathCompile(path) {
+    pathCompile(path: string) {
       // To solve this problem https://github.com/PanJiaChen/vue-element-admin/issues/561
       const { params } = this.$route
       var toPath = compile(path)
       return toPath(params)
     },
-    handleLink(item) {
+    handleLink(item: Breadcrumb) {
       const { redirect, path } = item
       if (redirect) {
         this.$router.push(redirect)
@@ -64,7 +67,7 @@ export default {
       this.$router.push(this.pathCompile(path))
     }
   }
-}
+})
 </script>
 
 <style lang="scss" scoped>

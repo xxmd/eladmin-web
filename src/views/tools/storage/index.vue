@@ -15,10 +15,11 @@
   </el-tabs>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import S3 from './s3/index.vue'
 import Local from './local/index.vue'
-export default {
+export default defineComponent({
   name: 'Storage',
   components: { S3, Local },
   data() {
@@ -27,15 +28,15 @@ export default {
     }
   },
   methods: {
-    tabClick(name) {
+    tabClick() {
       if (this.activeName === 'first') {
-        this.$refs.local.crud.toQuery()
+        ;(this.$refs.local as InstanceType<typeof Local>).crud.toQuery()
       } else {
-        this.$refs.s3.crud.toQuery()
+        ;(this.$refs.s3 as InstanceType<typeof S3>).crud.toQuery()
       }
     }
   }
-}
+})
 </script>
 
 <style scoped>

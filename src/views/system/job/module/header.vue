@@ -11,11 +11,12 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import { header } from '@crud/crud'
 import rrOperation from '@crud/RR.operation.vue'
 import DateRangePicker from '@/components/DateRangePicker/index.vue'
-export default {
+export default defineComponent({
   components: { rrOperation, DateRangePicker },
   mixins: [header()],
   props: {
@@ -28,5 +29,5 @@ export default {
       required: true
     }
   }
-}
+})
 </script>

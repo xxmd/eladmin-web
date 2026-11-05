@@ -49,7 +49,8 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import { mapGetters } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb/index.vue'
 import Hamburger from '@/components/Hamburger/index.vue'
@@ -59,7 +60,7 @@ import SizeSelect from '@/components/SizeSelect/index.vue'
 import HeaderSearch from '@/components/HeaderSearch/index.vue'
 import Avatar from '@/assets/images/avatar.png'
 
-export default {
+export default defineComponent({
   components: {
     Breadcrumb,
     Hamburger,
@@ -85,7 +86,7 @@ export default {
       get() {
         return this.$store.state.settings.showSettings
       },
-      set(val) {
+      set(val: boolean) {
         this.$store.dispatch('settings/changeSetting', {
           key: 'showSettings',
           value: val
@@ -112,7 +113,7 @@ export default {
       })
     }
   }
-}
+})
 </script>
 
 <style lang="scss" scoped>

@@ -3,14 +3,14 @@ import type { Job } from '../../src/types/api'
 
 const user = { id: 1, username: 'admin', nickName: '管理员', email: 'test@example.com', phone: '13800000000', dept: { id: 1, name: '研发部' }, roles: [{ id: 1, name: '超级管理员', level: 1 }], jobs: [], enabled: true }
 const jobs = [{ id: 1, name: '工程师', jobSort: 1, enabled: true, createTime: '2026-11-04 10:00:00' }]
-const extraViews = ['system/dict/index', 'system/timing/index', 'monitor/online/index', 'monitor/log/index', 'monitor/log/errorLog', 'monitor/server/index', 'maint/server/index', 'maint/app/index', 'maint/database/index', 'maint/deploy/index', 'maint/deployHistory/index', 'tools/storage/index', 'tools/email/index', 'tools/aliPay/index', 'generator/index', 'components/Editor', 'components/MarkDown', 'components/YamlEdit', 'components/Echarts', 'components/icons/index']
+const extraViews = ['system/dict/index', 'system/timing/index', 'monitor/online/index', 'monitor/log/index', 'monitor/log/errorLog', 'monitor/server/index', 'maint/server/index', 'maint/app/index', 'maint/database/index', 'maint/deploy/index', 'maint/deployHistory/index', 'tools/storage/index', 'tools/email/index', 'tools/aliPay/index', 'generator/index', 'generator/config', 'generator/preview', 'components/Editor', 'components/MarkDown', 'components/YamlEdit', 'components/Echarts', 'components/icons/index']
 const menus = [{ path: '/system', component: 'Layout', name: 'System', meta: { title: '系统管理' }, children: [
   { path: 'job', component: 'system/job/index', name: 'Job', meta: { title: '岗位管理' } },
   { path: 'user', component: 'system/user/index', name: 'User', meta: { title: '用户管理' } },
   { path: 'dept', component: 'system/dept/index', name: 'Dept', meta: { title: '部门管理' } },
   { path: 'role', component: 'system/role/index', name: 'Role', meta: { title: '角色管理' } },
   { path: 'menu', component: 'system/menu/index', name: 'Menu', meta: { title: '菜单管理' } }
-] }, { path: '/smoke', component: 'Layout', children: extraViews.map((component, index) => ({ path: String(index), component, name: `Smoke${index}`, meta: { title: component } })) }]
+] }, { path: '/smoke', component: 'Layout', children: extraViews.map((component, index) => ({ path: component === 'generator/config' || component === 'generator/preview' ? `${index}/:tableName` : String(index), component, name: `Smoke${index}`, meta: { title: component } })) }]
 
 async function mockApi(page: Page, roles = ['admin'], invalidMenu = false) {
   let records: Job[] = jobs.map(job => ({ ...job }))
@@ -38,6 +38,10 @@ async function mockApi(page: Page, roles = ['admin'], invalidMenu = false) {
     else if (url.pathname === '/api/roles/level') result = { level: 1 }
     else if (url.pathname === '/api/roles') result = { content: [{ id: 1, name: '超级管理员', level: 1, dataScope: '全部', menus: [] }], totalElements: 1 }
     else if (url.pathname === '/api/monitor') result = { sys: { os: 'Test', ip: '127.0.0.1', day: '1天' }, cpu: { used: '10', coreNumber: 4 }, memory: { total: '8GB', used: '1GB', available: '7GB', usageRate: '12' }, swap: { total: '0', used: '0', available: '0', usageRate: '0' }, disk: { total: '100GB', used: '10GB', available: '90GB', usageRate: '10' }, time: '12:00' }
+    else if (url.pathname === '/api/dict/all') result = [{ id: 1, name: 'user_status', description: '用户状态' }]
+    else if (url.pathname === '/api/dict') result = { content: [{ id: 1, name: 'user_status', description: '用户状态' }], totalElements: 1 }
+    else if (url.pathname === '/api/genConfig/sys_user') result = { id: 1, tableName: 'sys_user', author: 'test', pack: 'me.test', path: '/tmp', moduleName: 'system', cover: false, apiPath: '/tmp', prefix: '', apiAlias: '用户' }
+    else if (url.pathname === '/api/generator/sys_user/1') result = [{ name: 'Entity', content: 'public class User {}' }]
     else if (url.pathname === '/api/menus/lazy') result = []
     else if (url.pathname === '/api/visits/chartData') result = { visitsData: [], ipData: [] }
     else if (url.pathname.startsWith('/api/visits')) result = { newVisits: 0, newIp: 0, recentVisits: 0, recentIp: 0 }
@@ -96,7 +100,7 @@ test('all migrated feature pages load without runtime errors', async ({ page, co
   await mockApi(page)
   await context.addCookies([{ name: 'ELADMIN-TOEKN', value: 'test-token', domain: '127.0.0.1', path: '/' }])
   for (const [index, view] of extraViews.entries()) {
-    await page.goto(`/smoke/${index}`)
+    await page.goto(`/smoke/${index}${view === 'generator/config' || view === 'generator/preview' ? '/sys_user' : ''}`)
     await expect(page.locator('.app-main'), view).toBeVisible()
     await expect(page.locator('.app-main > :first-child'), view).toBeVisible()
     await page.waitForTimeout(300)
@@ -145,5 +149,75 @@ test('legacy CRUD forms, tree selector and column visibility remain functional',
     await page.getByRole('dialog').getByRole('button', { name: '取消', exact: true }).click()
     await expect(page.getByRole('dialog')).not.toBeVisible()
   }
+  expect(errors).toEqual([])
+})
+
+
+test('typed forms in dictionary, scheduler and maintenance retain their defaults', async ({ page, context }) => {
+  const errors: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  await mockApi(page)
+  await context.addCookies([{ name: 'ELADMIN-TOEKN', value: 'test-token', domain: '127.0.0.1', path: '/' }])
+  for (const view of ['system/dict/index', 'system/timing/index', 'maint/server/index', 'maint/app/index', 'maint/database/index', 'maint/deploy/index']) {
+    await page.goto(`/smoke/${extraViews.indexOf(view)}`)
+    await page.getByRole('button', { name: '新增', exact: true }).first().click()
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible()
+    await dialog.getByRole('button', { name: '取消', exact: true }).click()
+    await expect(dialog).not.toBeVisible()
+  }
+  await page.goto(`/smoke/${extraViews.indexOf('system/dict/index')}`)
+  await page.getByText('user_status', { exact: true }).click()
+  await page.getByRole('button', { name: '新增', exact: true }).last().click()
+  await expect(page.getByRole('dialog')).toContainText('新增字典详情')
+  await page.getByRole('dialog').getByRole('button', { name: '取消', exact: true }).click()
+  expect(errors).toEqual([])
+})
+
+test('personal profile opens password and email forms without runtime errors', async ({ page, context }) => {
+  const errors: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  await mockApi(page)
+  await context.addCookies([{ name: 'ELADMIN-TOEKN', value: 'test-token', domain: '127.0.0.1', path: '/' }])
+  await page.goto('/user/center')
+  for (const title of ['修改密码', '修改邮箱']) {
+    await page.getByText(title, { exact: true }).click()
+    await expect(page.getByRole('dialog')).toBeVisible()
+    await page.getByRole('dialog').getByRole('button', { name: '取消', exact: true }).click()
+  }
+  await page.getByRole('tab', { name: '操作日志' }).click()
+  await expect(page.getByRole('columnheader', { name: '行为' })).toBeVisible()
+  expect(errors).toEqual([])
+})
+
+
+test('shared CRUD validates and submits typed forms with the selected dictionary id', async ({ page, context }) => {
+  const errors: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  await mockApi(page)
+  await context.addCookies([{ name: 'ELADMIN-TOEKN', value: 'test-token', domain: '127.0.0.1', path: '/' }])
+  await page.goto('/system/dept')
+  await page.getByRole('button', { name: '新增', exact: true }).click()
+  let dialog = page.getByRole('dialog')
+  await dialog.getByRole('button', { name: '确认', exact: true }).click()
+  await expect(dialog.getByText('请输入名称')).toBeVisible()
+  await dialog.getByLabel('部门名称').fill('类型迁移回归部门')
+  const departmentRequest = page.waitForRequest(request => request.url().endsWith('/api/dept') && request.method() === 'POST')
+  await dialog.getByRole('button', { name: '确认', exact: true }).click()
+  expect((await departmentRequest).postDataJSON()).toMatchObject({ id: null, name: '类型迁移回归部门', pid: null, deptSort: 999 })
+  await expect(dialog).not.toBeVisible()
+  await page.getByRole('button', { name: '新增', exact: true }).click()
+  await expect(page.getByRole('dialog').getByLabel('部门名称')).toHaveValue('')
+  await page.getByRole('dialog').getByRole('button', { name: '取消', exact: true }).click()
+  await page.goto(`/smoke/${extraViews.indexOf('system/dict/index')}`)
+  await page.getByText('user_status', { exact: true }).click()
+  await page.getByRole('button', { name: '新增', exact: true }).last().click()
+  dialog = page.getByRole('dialog')
+  await dialog.getByLabel('字典标签').fill('测试标签')
+  await dialog.getByLabel('字典值', { exact: true }).fill('test')
+  const detailRequest = page.waitForRequest(request => request.url().endsWith('/api/dictDetail') && request.method() === 'POST')
+  await dialog.getByRole('button', { name: '确认', exact: true }).click()
+  expect((await detailRequest).postDataJSON()).toMatchObject({ label: '测试标签', value: 'test', dict: { id: 1 } })
+  await expect(dialog).not.toBeVisible()
   expect(errors).toEqual([])
 })

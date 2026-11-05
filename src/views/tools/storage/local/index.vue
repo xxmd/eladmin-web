@@ -101,21 +101,26 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import type { UploadFile, UploadRawFile, UploadInstance } from 'element-plus'
+import type { EntityId } from '@/types/api'
+import { defineComponent } from 'vue'
 import { mapGetters } from 'vuex'
 import { getToken } from '@/utils/auth'
 import crudFile from '@/api/tools/localStorage'
-import CRUD, { presenter, header, form, crud } from '@crud/crud'
+import CRUD, { crudBindings } from '@crud/crud'
+import type { LocalFile, LocalFileForm } from '@/types/business'
+const { presenter, header, form, crud } = crudBindings<LocalFile, LocalFileForm>()
 import rrOperation from '@crud/RR.operation.vue'
 import crudOperation from '@crud/CRUD.operation.vue'
 import pagination from '@crud/Pagination.vue'
 import DateRangePicker from '@/components/DateRangePicker/index.vue'
 
-const defaultForm = { id: null, name: '' }
-export default {
+const defaultForm: LocalFileForm = { id: null, name: '' }
+export default defineComponent({
   components: { pagination, crudOperation, rrOperation, DateRangePicker },
   cruds() {
-    return CRUD({ title: '文件', url: 'api/localStorage', crudMethod: { ...crudFile }})
+    return CRUD<LocalFile, LocalFileForm>({ title: '文件', url: 'api/localStorage', crudMethod: { edit: crudFile.edit, del: crudFile.del }})
   },
   mixins: [presenter(), header(), form(defaultForm), crud()],
   data() {
@@ -141,9 +146,9 @@ export default {
   methods: {
     // 上传文件
     upload() {
-      this.$refs.upload.submit()
+      ;(this.$refs.upload as UploadInstance).submit()
     },
-    beforeUpload(file) {
+    beforeUpload(file: UploadRawFile) {
       let isLt2M = true
       isLt2M = file.size / 1024 / 1024 < 100
       if (!isLt2M) {
@@ -153,15 +158,15 @@ export default {
       this.form.name = file.name
       return isLt2M
     },
-    handleSuccess(response, file, fileList) {
+    handleSuccess(response: { id: EntityId }, file: UploadFile) {
       this.crud.notify('上传成功', CRUD.NOTIFICATION_TYPE.SUCCESS)
-      this.$refs.upload.clearFiles()
+      ;(this.$refs.upload as UploadInstance).clearFiles()
       this.crud.status.add = CRUD.STATUS.NORMAL
       this.crud.resetForm()
       this.crud.toQuery()
     },
     // 监听上传失败
-    handleError(e, file, fileList) {
+    handleError(e: Error) {
       const msg = JSON.parse(e.message)
       this.$notify({
         title: msg.message,
@@ -171,7 +176,7 @@ export default {
       this.loading = false
     }
   }
-}
+})
 </script>
 
 <style scoped>

@@ -13,10 +13,12 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import type { FormInstance } from 'element-plus'
+import { defineComponent } from 'vue'
 import { send } from '@/api/tools/email'
 import WangEditor from '@/components/WangEditor/index.vue'
-export default {
+export default defineComponent({
   name: 'EmailSend',
   components: { WangEditor },
   data() {
@@ -34,10 +36,10 @@ export default {
   },
   methods: {
     doSubmit() {
-      this.$refs['form'].validate((valid) => {
+      ;(this.$refs.form as FormInstance).validate((valid) => {
         if (valid) {
           this.loading = true
-          send(this.form).then(res => {
+          send({ ...this.form, tos: this.form.tos.split(/[,;，；\s]+/).filter(Boolean) }).then(res => {
             this.$notify({
               title: '发送成功',
               type: 'success',
@@ -49,12 +51,12 @@ export default {
             console.log(err.response.data.message)
           })
         } else {
-          return false
+          return
         }
       })
     }
   }
-}
+})
 </script>
 
 <style scoped>

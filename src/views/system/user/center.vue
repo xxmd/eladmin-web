@@ -27,8 +27,8 @@
               <li>
                 <svg-icon icon-class="anq" /> 安全设置
                 <div class="user-right">
-                  <a @click="$refs.pass.dialog = true">修改密码</a>
-                  <a @click="$refs.email.dialog = true">修改邮箱</a>
+                  <a @click="openPassword">修改密码</a>
+                  <a @click="openEmail">修改邮箱</a>
                 </div>
               </li>
             </ul>
@@ -104,7 +104,10 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import type { FormInstance } from 'element-plus'
+import { defineComponent } from 'vue'
+import type { TabsPaneContext } from 'element-plus'
 import myUpload from 'vue-image-crop-upload'
 import { mapGetters } from 'vuex'
 import updatePass from './center/updatePass.vue'
@@ -112,16 +115,17 @@ import updateEmail from './center/updateEmail.vue'
 import { getToken } from '@/utils/auth'
 import store from '@/store'
 import { isvalidPhone } from '@/utils/validate'
-import crud from '@/mixins/crud'
+import listMixin from '@/mixins/crud'
+import type { AuditLog, UserProfile } from '@/types/business'
 import { editUser } from '@/api/system/user'
 import Avatar from '@/assets/images/avatar.png'
-export default {
+export default defineComponent({
   name: 'Center',
   components: { updatePass, updateEmail, myUpload },
-  mixins: [crud],
+  mixins: [listMixin<AuditLog>()],
   data() {
     // 自定义验证
-    const validPhone = (rule, value, callback) => {
+    const validPhone = (rule: unknown, value: string, callback: (error?: Error) => void) => {
       if (!value) {
         callback(new Error('请输入电话号码'))
       } else if (!isvalidPhone(value)) {
@@ -138,7 +142,7 @@ export default {
       headers: {
         'Authorization': getToken()
       },
-      form: {},
+      form: { id: '', nickName: '', phone: '', gender: '男' } as UserProfile,
       rules: {
         nickName: [
           { required: true, message: '请输入用户昵称', trigger: 'blur' },
@@ -162,10 +166,12 @@ export default {
     store.dispatch('GetInfo').then(() => {})
   },
   methods: {
+    openPassword() { (this.$refs.pass as InstanceType<typeof updatePass>).dialog = true },
+    openEmail() { (this.$refs.email as InstanceType<typeof updateEmail>).dialog = true },
     toggleShow() {
       this.show = !this.show
     },
-    handleClick(tab, event) {
+    handleClick(tab: TabsPaneContext) {
       if (tab.props.name === 'second') {
         this.init()
       }
@@ -174,12 +180,12 @@ export default {
       this.url = 'api/logs/user'
       return true
     },
-    cropUploadSuccess(jsonData, field) {
+    cropUploadSuccess() {
       store.dispatch('GetInfo').then(() => {})
     },
     doSubmit() {
       if (this.$refs['form']) {
-        this.$refs['form'].validate((valid) => {
+        ;(this.$refs.form as FormInstance).validate((valid) => {
           if (valid) {
             this.saveLoading = true
             editUser(this.form).then(() => {
@@ -194,7 +200,7 @@ export default {
       }
     }
   }
-}
+})
 </script>
 
 <style rel="stylesheet/scss" lang="scss">

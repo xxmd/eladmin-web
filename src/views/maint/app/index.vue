@@ -74,26 +74,29 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import crudApp from '@/api/maint/app'
-import CRUD, { presenter, header, form, crud } from '@crud/crud'
+import CRUD, { crudBindings } from '@crud/crud'
+import type { DeploymentApp, DeploymentAppForm } from '@/types/business'
+const { presenter, header, form, crud } = crudBindings<DeploymentApp, DeploymentAppForm>()
 import rrOperation from '@crud/RR.operation.vue'
 import crudOperation from '@crud/CRUD.operation.vue'
 import udOperation from '@crud/UD.operation.vue'
 import pagination from '@crud/Pagination.vue'
 import DateRangePicker from '@/components/DateRangePicker/index.vue'
 
-const defaultForm = { id: null, name: null, port: 8080, uploadPath: '/opt/upload', deployPath: '/opt/app', backupPath: '/opt/backup', startScript: null, deployScript: null }
-export default {
+const defaultForm: DeploymentAppForm = { id: null, name: '', port: 8080, uploadPath: '/opt/upload', deployPath: '/opt/app', backupPath: '/opt/backup', startScript: '', deployScript: '' }
+export default defineComponent({
   name: 'App',
   components: { pagination, crudOperation, rrOperation, udOperation, DateRangePicker },
   cruds() {
-    return CRUD({ title: '应用', url: 'api/app', crudMethod: { ...crudApp }})
+    return CRUD<DeploymentApp, DeploymentAppForm>({ title: '应用', url: 'api/app', crudMethod: { ...crudApp }})
   },
   mixins: [presenter(), header(), form(defaultForm), crud()],
   data() {
     return {
-      currentRow: null,
+      currentRow: null as DeploymentApp | null,
       permission: {
         add: ['admin', 'app:add'],
         edit: ['admin', 'app:edit'],
@@ -126,18 +129,15 @@ export default {
   },
   methods: {
     copy() {
-      for (const key in this.currentRow) {
-        this.form[key] = this.currentRow[key]
-      }
-      this.form.id = null
-      this.form.createTime = null
+      if (!this.currentRow) return
       this.crud.toAdd()
+      Object.assign(this.form, this.currentRow, { id: null, createTime: undefined })
     },
-    handleCurrentChange(row) {
-      this.currentRow = JSON.parse(JSON.stringify(row))
+    handleCurrentChange(row: DeploymentApp | null) {
+      this.currentRow = row ? { ...row } : null
     }
   }
-}
+})
 </script>
 
 <style scoped>

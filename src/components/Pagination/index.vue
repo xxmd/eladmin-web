@@ -14,10 +14,11 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import { scrollTo } from '@/utils/scroll-to'
 
-export default {
+export default defineComponent({
   name: 'Pagination',
   props: {
     total: {
@@ -60,7 +61,7 @@ export default {
       get() {
         return this.page
       },
-      set(val) {
+      set(val: number) {
         this.$emit('update:page', val)
       }
     },
@@ -68,26 +69,26 @@ export default {
       get() {
         return this.limit
       },
-      set(val) {
+      set(val: number) {
         this.$emit('update:limit', val)
       }
     }
   },
   methods: {
-    handleSizeChange(val) {
+    handleSizeChange(val: number) {
       this.$emit('pagination', { page: this.currentPage, limit: val })
       if (this.autoScroll) {
         scrollTo(0, 800)
       }
     },
-    handleCurrentChange(val) {
+    handleCurrentChange(val: number) {
       this.$emit('pagination', { page: val, limit: this.pageSize })
       if (this.autoScroll) {
         scrollTo(0, 800)
       }
     }
   }
-}
+})
 </script>
 
 <style scoped>

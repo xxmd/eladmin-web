@@ -27,7 +27,7 @@
           >
             <p>确定删除本条数据吗？</p>
             <div style="text-align: right; margin: 0">
-              <el-button type="primary" link @click="$refs[scope.row.id].hide()">取消</el-button>
+              <el-button type="primary" link @click="closePopover(scope.row.id)">取消</el-button>
               <el-button :loading="delLoading" type="primary" @click="delMethod(scope.row.id)">确定</el-button>
             </div>
             <template #reference><el-button  type="danger" icon="IconDelete" /></template>
@@ -40,19 +40,24 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import type { PopoverInstance } from 'element-plus'
+import type { EntityId } from '@/types/api'
+import { defineComponent } from 'vue'
 import { del } from '@/api/maint/deployHistory'
-import CRUD, { presenter, header } from '@crud/crud'
+import CRUD, { crudBindings } from '@crud/crud'
+import type { DeploymentHistory } from '@/types/business'
+const { presenter, header } = crudBindings<DeploymentHistory>()
 import rrOperation from '@crud/RR.operation.vue'
 import crudOperation from '@crud/CRUD.operation.vue'
 import pagination from '@crud/Pagination.vue'
 import DateRangePicker from '@/components/DateRangePicker/index.vue'
 
-export default {
+export default defineComponent({
   name: 'DeployHistory',
   components: { pagination, crudOperation, rrOperation, DateRangePicker },
   cruds() {
-    return CRUD({ title: '部署历史', url: 'api/deployHistory', crudMethod: { del }})
+    return CRUD<DeploymentHistory>({ title: '部署历史', url: 'api/deployHistory', crudMethod: { del }})
   },
   mixins: [presenter(), header()],
   data() {
@@ -72,21 +77,22 @@ export default {
     }
   },
   methods: {
-    delMethod(id) {
+    closePopover(id?: EntityId) { if (id !== undefined) (this.$refs[id] as PopoverInstance | undefined)?.hide() },
+    delMethod(id: EntityId) {
       this.delLoading = true
       del([id]).then(() => {
         this.delLoading = false
-        this.$refs[id].hide()
+        this.closePopover(id)
         this.crud.dleChangePage(1)
         this.crud.delSuccessNotify()
         this.crud.toQuery()
       }).catch(() => {
         this.delLoading = false
-        this.$refs[id].hide()
+        this.closePopover(id)
       })
     }
   }
-}
+})
 </script>
 
 <style scoped>

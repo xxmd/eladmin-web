@@ -3,8 +3,9 @@
     <iframe :src="src" frameborder="no" style="width: 100%;height: 100%" scrolling="auto" />
   </div>
 </template>
-<script>
-export default {
+<script lang="ts">
+import { defineComponent } from 'vue'
+export default defineComponent({
   props: {
     src: {
       type: String,
@@ -26,5 +27,5 @@ export default {
       that.height = document.documentElement.clientHeight - (84 + 22) + 'px;'
     }
   }
-}
+})
 </script>

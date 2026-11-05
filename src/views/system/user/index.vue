@@ -206,13 +206,18 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import crudUser from '@/api/system/user'
 import { isvalidPhone } from '@/utils/validate'
 import { getDepts, getDeptSuperior } from '@/api/system/dept'
 import { getAll, getLevel } from '@/api/system/role'
 import { getAllJob } from '@/api/system/job'
-import CRUD, { presenter, header, form, crud } from '@crud/crud'
+import CRUD, { crudBindings, type CrudController } from '@crud/crud'
+import type { Department, DepartmentQuery, Role, LazyNode, EntityRef, UserRecord, UserForm } from '@/types/business'
+const { presenter, header, form, crud } = crudBindings<UserRecord, UserForm>()
+import type { EntityId, Job } from '@/types/api'
+type PageCrud = CrudController<UserRecord, UserForm>
 import rrOperation from '@crud/RR.operation.vue'
 import crudOperation from '@crud/CRUD.operation.vue'
 import udOperation from '@crud/UD.operation.vue'
@@ -222,21 +227,21 @@ import DateRangePicker from '@/components/DateRangePicker/index.vue'
 import { mapGetters } from 'vuex'
 
 
-let userRoles = []
-let userJobs = []
-const defaultForm = { id: null, username: null, nickName: null, gender: '男', email: null, enabled: 'false', roles: [], jobs: [], dept: { id: null }, phone: null }
-export default {
+let userRoles: EntityRef[] = []
+let userJobs: EntityRef[] = []
+const defaultForm: UserForm = { id: null, username: '', nickName: '', gender: '男', email: '', enabled: 'false', roles: [] as Role[], jobs: [] as Job[], dept: { id: null }, phone: '' }
+export default defineComponent({
   name: 'User',
   components: { crudOperation, rrOperation, udOperation, pagination, DateRangePicker },
   cruds() {
-    return CRUD({ title: '用户', url: 'api/users', crudMethod: { ...crudUser }})
+    return CRUD<UserRecord, UserForm>({ title: '用户', url: 'api/users', crudMethod: { ...crudUser }})
   },
   mixins: [presenter(), header(), form(defaultForm), crud()],
   // 数据字典
   dicts: ['user_status'],
   data() {
     // 自定义验证
-    const validPhone = (rule, value, callback) => {
+    const validPhone = (rule: unknown, value: string, callback: (error?: Error) => void) => {
       if (!value) {
         callback(new Error('请输入电话号码'))
       } else if (!isvalidPhone(value)) {
@@ -247,8 +252,8 @@ export default {
     }
     return {
       height: document.documentElement.clientHeight - 180 + 'px;',
-      deptName: '', depts: [], deptDatas: [], jobs: [], level: 3, roles: [],
-      jobDatas: [], roleDatas: [], // 多选时使用
+      deptName: '', depts: [] as Department[], deptDatas: [] as Department[], jobs: [] as Job[], level: 3, roles: [] as Role[],
+      jobDatas: [] as EntityId[], roleDatas: [] as EntityId[], // 多选时使用
       defaultProps: { children: 'children', label: 'name', isLeaf: 'leaf' },
       permission: {
         add: ['admin', 'user:add'],
@@ -280,9 +285,9 @@ export default {
         ],
         jobDatas: [
           {
-            validator: (rule, value, callback) => {
-              value = this.jobDatas
-              if (!value || value.length === 0) {
+            validator: (rule: unknown, value: string, callback: (error?: Error) => void) => {
+              const selected = this.jobDatas
+              if (!selected || selected.length === 0) {
                 callback(new Error('请选择至少一个岗位'))
               } else {
                 callback()
@@ -293,9 +298,9 @@ export default {
         ],
         roleDatas: [
           {
-            validator: (rule, value, callback) => {
-              value = this.roleDatas
-              if (!value || value.length === 0) {
+            validator: (rule: unknown, value: string, callback: (error?: Error) => void) => {
+              const selected = this.roleDatas
+              if (!selected || selected.length === 0) {
                 callback(new Error('请选择至少一个角色'))
               } else {
                 callback()
@@ -323,34 +328,34 @@ export default {
   },
   methods: {
     // 禁止输入空格
-    keydown(e) {
+    keydown(e: KeyboardEvent) {
       if (e.keyCode === 32) {
         e.returnValue = false
       }
     },
-    changeRole(value) {
+    changeRole(value: EntityId[]) {
       userRoles = []
       value.forEach(function(data, index) {
         const role = { id: data }
         userRoles.push(role)
       })
     },
-    changeJob(value) {
+    changeJob(value: EntityId[]) {
       userJobs = []
       value.forEach(function(data, index) {
         const job = { id: data }
         userJobs.push(job)
       })
     },
-    deleteTag(value) {
+    deleteTag(value: EntityId) {
       userRoles.forEach(function(data, index) {
         if (data.id === value) {
-          userRoles.splice(index, value)
+          userRoles.splice(index, 1)
         }
       })
     },
     // 新增与编辑前做的操作
-    [CRUD.HOOK.afterToCU](crud, form) {
+    [CRUD.HOOK.afterToCU](crud: PageCrud, form: UserForm) {
       this.getRoles()
       if (form.id == null) {
         this.getDepts()
@@ -359,7 +364,7 @@ export default {
       }
       this.getRoleLevel()
       this.getJobs()
-      form.enabled = form.enabled.toString()
+      form.enabled = form.enabled === true || form.enabled === 'true' ? 'true' : 'false'
     },
     // 新增前将多选的值设置为空
     [CRUD.HOOK.beforeToAdd]() {
@@ -367,8 +372,8 @@ export default {
       this.roleDatas = []
     },
     // 初始化编辑时候的角色与岗位
-    [CRUD.HOOK.beforeToEdit](crud, form) {
-      this.getJobs(this.form.dept.id)
+    [CRUD.HOOK.beforeToEdit](crud: PageCrud, form: UserForm) {
+      this.getJobs()
       this.jobDatas = []
       this.roleDatas = []
       userRoles = []
@@ -386,15 +391,15 @@ export default {
       })
     },
     // 提交前做的操作
-    [CRUD.HOOK.afterValidateCU](crud) {
+    [CRUD.HOOK.afterValidateCU](crud: PageCrud) {
       crud.form.roles = userRoles
       crud.form.jobs = userJobs
       return true
     },
     // 获取左侧部门数据
-    getDeptDatas(node, resolve) {
-      const sort = 'id,desc'
-      const params = { sort: sort }
+    getDeptDatas(node: LazyNode<Department> | string, resolve?: (rows: Department[]) => void) {
+      const sort = ['id,desc']
+      const params: DepartmentQuery = { sort }
       if (typeof node !== 'object') {
         if (node) {
           params['name'] = node
@@ -417,13 +422,13 @@ export default {
         this.depts = res.content
       })
     },
-    getSupDepts(deptId) {
-      getDeptSuperior(deptId).then(res => {
+    getSupDepts(deptId: EntityId | null) {
+      getDeptSuperior(deptId ?? 0).then(res => {
         this.depts = res.content
       })
     },
     // Element Plus resolves child nodes on expansion; roots come from depts.
-    loadDepts(node, resolve, reject) {
+    loadDepts(node: LazyNode<Department>, resolve: (rows: Department[]) => void, reject: () => void) {
       if (node.level === 0) {
         resolve(this.depts)
         return
@@ -433,7 +438,7 @@ export default {
       }).catch(() => reject())
     },
     // 切换部门
-    handleNodeClick(data) {
+    handleNodeClick(data: Department) {
       if (data.pid === 0) {
         this.query.deptId = null
       } else {
@@ -442,14 +447,14 @@ export default {
       this.crud.toQuery()
     },
     // 改变状态
-    changeEnabled(data, val) {
-      this.$confirm('此操作将 "' + this.dict.label.user_status[val] + '" ' + data.username + ', 是否继续？', '提示', {
+    changeEnabled(data: UserRecord, val: boolean) {
+      this.$confirm('此操作将 "' + this.dict.label.user_status[String(val)] + '" ' + data.username + ', 是否继续？', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
         crudUser.edit(data).then(res => {
-          this.crud.notify(this.dict.label.user_status[val] + '成功', CRUD.NOTIFICATION_TYPE.SUCCESS)
+          this.crud.notify(this.dict.label.user_status[String(val)] + '成功', CRUD.NOTIFICATION_TYPE.SUCCESS)
         }).catch(() => {
           data.enabled = !data.enabled
         })
@@ -475,16 +480,16 @@ export default {
         this.level = res.level
       }).catch(() => { })
     },
-    checkboxT(row, rowIndex) {
+    checkboxT(row: UserRecord) {
       return row.id !== this.user.id
     },
-    resetPwd(datas) {
+    resetPwd(datas: UserRecord[]) {
       this.$confirm(`你选中了 ${datas.length} 位用户，确认重置用户的密码吗?`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        const ids = []
+        const ids: EntityId[] = []
         datas.forEach(val => {
           ids.push(val.id)
         })
@@ -496,7 +501,7 @@ export default {
       })
     }
   }
-}
+})
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>

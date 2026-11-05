@@ -11,9 +11,10 @@
     </el-popover>
   </div>
 </template>
-<script>
-import CRUD, { crud } from '@crud/crud'
-export default {
+<script lang="ts">
+import { defineComponent } from 'vue'
+import CRUD, { crud, type CrudController } from '@crud/crud'
+export default defineComponent({
   mixins: [crud()],
   props: {
     data: {
@@ -50,7 +51,7 @@ export default {
     toDelete() {
       this.pop = true
     },
-    [CRUD.HOOK.afterDelete](crud, data) {
+    [CRUD.HOOK.afterDelete](crud: CrudController, data: object) {
       if (data === this.data) {
         this.pop = false
       }
@@ -63,11 +64,11 @@ export default {
     onPopoverHide() {
       document.removeEventListener('click', this.handleDocumentClick)
     },
-    handleDocumentClick(event) {
+    handleDocumentClick() {
       this.pop = false
     }
   }
-}
+})
 </script>
 <style scoped>
 .crud-row-actions {

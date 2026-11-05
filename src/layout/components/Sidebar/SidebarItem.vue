@@ -25,21 +25,22 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
 import path from 'path'
 import { isExternal } from '@/utils/validate'
 import Item from './Item.vue'
 import AppLink from './Link.vue'
-import FixiOSBug from './FixiOSBug'
+import type { AppRoute } from '@/router/routers'
+type SidebarRoute = AppRoute & { noShowingChildren?: boolean }
 
-export default {
+export default defineComponent({
   name: 'SidebarItem',
   components: { Item, AppLink },
-  mixins: [FixiOSBug],
   props: {
     // route object
     item: {
-      type: Object,
+      type: Object as PropType<SidebarRoute>,
       required: true
     },
     isNest: {
@@ -54,11 +55,10 @@ export default {
   data() {
     // To fix https://github.com/PanJiaChen/vue-admin-template/issues/237
     // TODO: refactor with render function
-    this.onlyOneChild = null
-    return {}
+    return { onlyOneChild: this.item as SidebarRoute }
   },
   methods: {
-    hasOneShowingChild(children = [], parent) {
+    hasOneShowingChild(children: AppRoute[] = [], parent: AppRoute) {
       const showingChildren = children.filter(item => {
         if (item.hidden) {
           return false
@@ -82,7 +82,7 @@ export default {
 
       return false
     },
-    resolvePath(routePath) {
+    resolvePath(routePath: string) {
       if (isExternal(routePath)) {
         return routePath
       }
@@ -92,5 +92,5 @@ export default {
       return path.resolve(this.basePath, routePath)
     }
   }
-}
+})
 </script>

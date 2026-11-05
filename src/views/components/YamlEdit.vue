@@ -9,9 +9,10 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import Yaml from '@/components/YamlEdit/index.vue'
-export default {
+export default defineComponent({
   name: 'YamlEdit',
   components: { Yaml },
   data() {
@@ -199,7 +200,7 @@ export default {
       that.height = document.documentElement.clientHeight - 210 + 'px'
     }
   }
-}
+})
 </script>
 
 <style scoped>

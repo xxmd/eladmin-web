@@ -49,18 +49,21 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import Search from './search.vue'
 import { delAllInfo } from '@/api/monitor/log'
-import CRUD, { presenter } from '@crud/crud'
+import CRUD, { crudBindings } from '@crud/crud'
+import type { AuditLog } from '@/types/business'
+const { presenter } = crudBindings<AuditLog>()
 import crudOperation from '@crud/CRUD.operation.vue'
 import pagination from '@crud/Pagination.vue'
 
-export default {
+export default defineComponent({
   name: 'Log',
   components: { Search, crudOperation, pagination },
   cruds() {
-    return CRUD({ title: '日志', url: 'api/logs' })
+    return CRUD<AuditLog>({ title: '日志', url: 'api/logs' })
   },
   mixins: [presenter()],
   created() {
@@ -92,7 +95,7 @@ export default {
       })
     }
   }
-}
+})
 </script>
 
 <style>

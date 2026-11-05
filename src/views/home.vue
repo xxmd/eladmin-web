@@ -29,7 +29,8 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import GithubCorner from '@/components/GithubCorner/index.vue'
 import PanelGroup from './dashboard/PanelGroup.vue'
 import LineChart from './dashboard/LineChart.vue'
@@ -56,7 +57,7 @@ const lineChartData = {
   }
 }
 
-export default {
+export default defineComponent({
   name: 'Dashboard',
   components: {
     GithubCorner,
@@ -72,11 +73,11 @@ export default {
     }
   },
   methods: {
-    handleSetLineChartData(type) {
+    handleSetLineChartData(type: keyof typeof lineChartData) {
       this.lineChartData = lineChartData[type]
     }
   }
-}
+})
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>

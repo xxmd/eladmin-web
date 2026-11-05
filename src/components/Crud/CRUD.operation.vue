@@ -99,11 +99,13 @@
     </el-button-group>
   </div>
 </template>
-<script>
-import CRUD, { crud } from '@crud/crud'
+<script lang="ts">
+import { defineComponent, type PropType, type SlotsType, type VNode } from 'vue'
+import CRUD, { crud, type CrudColumn } from '@crud/crud'
 
-function sortWithRef(src, ref) {
-  const result = Object.assign([], ref)
+interface VisibleColumn extends CrudColumn { visible: boolean }
+function sortWithRef<T>(src: T[], ref: T[]): T[] {
+  const result = [...ref]
   let cursor = -1
   src.forEach(e => {
     const idx = result.indexOf(e)
@@ -117,26 +119,27 @@ function sortWithRef(src, ref) {
   return result
 }
 
-export default {
+export default defineComponent({
   mixins: [crud()],
+  slots: Object as SlotsType<{ left: () => VNode[]; right: () => VNode[] }>,
   props: {
     permission: {
       type: Object,
       default: () => { return {} }
     },
     hiddenColumns: {
-      type: Array,
+      type: Array as PropType<string[]>,
       default: () => { return [] }
     },
     ignoreColumns: {
-      type: Array,
+      type: Array as PropType<string[]>,
       default: () => { return [] }
     }
   },
   data() {
     return {
-      tableColumns: [],
-      columnConfigs: [],
+      tableColumns: [] as VisibleColumn[],
+      columnConfigs: [] as CrudColumn[],
       allColumnsSelected: true,
       allColumnsSelectedIndeterminate: false,
       tableUnwatcher: null,
@@ -169,14 +172,14 @@ export default {
         return
       }
       let cols = null
-      const columnFilter = e => e && e.type === 'default' && e.property && this.ignoreColumns.indexOf(e.property) === -1
+      const columnFilter = (e: CrudColumn) => e && e.type === 'default' && e.property && this.ignoreColumns.indexOf(e.property) === -1
       const refCols = table.columns.filter(columnFilter)
       if (this.ignoreNextTableColumnsChange) {
         this.ignoreNextTableColumnsChange = false
         return
       }
       this.ignoreNextTableColumnsChange = false
-      const columns = []
+      const columns: VisibleColumn[] = []
       const fullTableColumns = [...this.columnConfigs, ...refCols].filter((column, index, all) => all.findIndex(item => item.property === column.property) === index)
       this.columnConfigs = fullTableColumns
       cols = sortWithRef(fullTableColumns, refCols)
@@ -190,7 +193,7 @@ export default {
       })
       this.tableColumns = columns
     },
-    toDelete(datas) {
+    toDelete(datas: Record<string, unknown>[]) {
       this.$confirm(`确认删除选中的${datas.length}条数据?`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -201,7 +204,7 @@ export default {
       }).catch(() => {
       })
     },
-    handleCheckAllChange(val) {
+    handleCheckAllChange(val: boolean) {
       if (val === false) {
         this.allColumnsSelected = true
         return
@@ -215,7 +218,7 @@ export default {
       this.allColumnsSelected = val
       this.allColumnsSelectedIndeterminate = false
     },
-    handleCheckedTableColumnsChange(item) {
+    handleCheckedTableColumnsChange(item: VisibleColumn) {
       let totalCount = 0
       let selectedCount = 0
       this.tableColumns.forEach(column => {
@@ -233,14 +236,14 @@ export default {
       this.allColumnsSelectedIndeterminate = selectedCount !== totalCount && selectedCount !== 0
       this.updateColumnVisible(item)
     },
-    updateColumnVisible(item) {
+    updateColumnVisible(item: VisibleColumn) {
       this.crud.updateProp('hiddenColumns', this.tableColumns.filter(column => !column.visible).map(column => column.property))
     },
     toggleSearch() {
       this.crud.props.searchToggle = !this.crud.props.searchToggle
     }
   }
-}
+})
 </script>
 
 <style>

@@ -17,14 +17,14 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import RightPanel from '@/components/RightPanel/index.vue'
 import { AppMain, Navbar, Settings, Sidebar, TagsView } from './components'
 import ResizeMixin from './mixin/ResizeHandler'
-import { mapState } from 'vuex'
 import Theme from '@/components/ThemePicker/index.vue'
 import Cookies from 'js-cookie'
-export default {
+export default defineComponent({
   name: 'Layout',
   components: {
     AppMain,
@@ -37,13 +37,11 @@ export default {
   },
   mixins: [ResizeMixin],
   computed: {
-    ...mapState({
-      sidebar: state => state.app.sidebar,
-      device: state => state.app.device,
-      showSettings: state => state.settings.showSettings,
-      needTagsView: state => state.settings.tagsView,
-      fixedHeader: state => state.settings.fixedHeader
-    }),
+    sidebar() { return this.$store.state.app.sidebar },
+    device() { return this.$store.state.app.device },
+    showSettings() { return this.$store.state.settings.showSettings },
+    needTagsView() { return this.$store.state.settings.tagsView },
+    fixedHeader() { return this.$store.state.settings.fixedHeader },
     classObj() {
       return {
         hideSidebar: !this.sidebar.opened,
@@ -55,7 +53,7 @@ export default {
   },
   mounted() {
     if (Cookies.get('theme')) {
-      this.$refs.theme.theme = Cookies.get('theme')
+      ;(this.$refs.theme as InstanceType<typeof Theme>).theme = Cookies.get('theme') || '#409EFF'
       this.$store.dispatch('settings/changeSetting', {
         key: 'theme',
         value: Cookies.get('theme')
@@ -67,7 +65,7 @@ export default {
       this.$store.dispatch('app/closeSideBar', { withoutAnimation: false })
     }
   }
-}
+})
 </script>
 
 <style lang="scss" scoped>

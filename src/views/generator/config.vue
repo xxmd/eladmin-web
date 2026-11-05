@@ -133,7 +133,7 @@
               <el-table-column label="关联字典">
                 <template #default="scope">
                   <el-select v-model="data[scope.$index].dictName" filterable class="edit-input" clearable placeholder="请选择">
-                    <el-option v-for="item in dicts" :key="item.id" :label="item.remark === '' ? item.name : item.remark" :value="item.name" />
+                    <el-option v-for="item in dicts" :key="item.id" :label="item.description === '' ? item.name : item.description" :value="item.name" />
                   </el-select>
                 </template>
               </el-table-column>
@@ -197,19 +197,22 @@
   </div>
 </template>
 
-<script>
-import crud from '@/mixins/crud'
+<script lang="ts">
+import type { FormInstance } from 'element-plus'
+import { defineComponent } from 'vue'
+import listMixin from '@/mixins/crud'
+import type { GeneratorColumn, GeneratorConfig, Dictionary } from '@/types/business'
 import { update, get } from '@/api/generator/genConfig'
 import { save, sync, generator } from '@/api/generator/generator'
 import { getDicts } from '@/api/system/dict'
-export default {
+export default defineComponent({
   name: 'GeneratorConfig',
   components: {},
-  mixins: [crud],
+  mixins: [listMixin<GeneratorColumn>()],
   data() {
     return {
-      activeName: 'first', tableName: '', tableHeight: 550, columnLoading: false, configLoading: false, dicts: [], syncLoading: false, genLoading: false,
-      form: { id: null, tableName: '', author: '', pack: '', path: '', moduleName: '', cover: 'false', apiPath: '', prefix: '', apiAlias: null },
+      activeName: 'first', tableName: '', tableHeight: 550, columnLoading: false, configLoading: false, dicts: [] as Dictionary[], syncLoading: false, genLoading: false,
+      form: { id: null, tableName: '', author: '', pack: '', path: '', moduleName: '', cover: 'false', apiPath: '', prefix: '', apiAlias: null } as GeneratorConfig,
       rules: {
         author: [
           { required: true, message: '作者不能为空', trigger: 'blur' }
@@ -234,12 +237,12 @@ export default {
   },
   created() {
     this.tableHeight = document.documentElement.clientHeight - 385
-    this.tableName = this.$route.params.tableName
+    this.tableName = String(this.$route.params.tableName)
     this.$nextTick(() => {
       this.init()
       get(this.tableName).then(data => {
         this.form = data
-        this.form.cover = this.form.cover.toString()
+        this.form.cover = this.form.cover === true || this.form.cover === 'true' ? 'true' : 'false'
       })
       getDicts().then(data => {
         this.dicts = data
@@ -264,13 +267,13 @@ export default {
       })
     },
     doSubmit() {
-      this.$refs['form'].validate((valid) => {
+      ;(this.$refs.form as FormInstance).validate((valid) => {
         if (valid) {
           this.configLoading = true
           update(this.form).then(res => {
             this.notify('保存成功', 'success')
             this.form = res
-            this.form.cover = this.form.cover.toString()
+            this.form.cover = this.form.cover === true || this.form.cover === 'true' ? 'true' : 'false'
             this.configLoading = false
           }).catch(err => {
             this.configLoading = false
@@ -307,7 +310,7 @@ export default {
       })
     }
   }
-}
+})
 </script>
 
 <style rel="stylesheet/scss" lang="scss">

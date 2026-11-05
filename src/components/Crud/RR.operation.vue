@@ -5,9 +5,10 @@
     <el-button v-if="crud.optShow.reset" class="filter-item" type="warning" icon="IconRefreshLeft" @click="crud.resetQuery()">重置</el-button>
   </span>
 </template>
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import { crud } from '@crud/crud'
-export default {
+export default defineComponent({
   mixins: [crud()],
   props: {
     itemClass: {
@@ -16,5 +17,5 @@ export default {
       default: ''
     }
   }
-}
+})
 </script>

@@ -25,7 +25,7 @@
             placement="bottom-start"
             width="450"
             trigger="click"
-            @show="$refs['iconSelect'].reset()"
+            @show="resetIconSelect"
           >
             <IconSelect ref="iconSelect" @selected="selected" />
             <template #reference><el-input  v-model="form.icon" style="width: 450px;" placeholder="点击选择图标" readonly>
@@ -147,30 +147,36 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import crudMenu from '@/api/system/menu'
 import IconSelect from '@/components/IconSelect/index.vue'
 import Treeselect from '@zanmato/vue3-treeselect'
 import '@zanmato/vue3-treeselect/dist/vue3-treeselect.min.css'
 import { LOAD_CHILDREN_OPTIONS } from '@zanmato/vue3-treeselect'
-import CRUD, { presenter, header, form, crud } from '@crud/crud'
+import CRUD, { crudBindings, type CrudController } from '@crud/crud'
+import type { Menu, MenuForm, TreeLoadOptions } from '@/types/business'
+const { presenter, header, form, crud } = crudBindings<Menu, MenuForm>()
+import type { EntityId } from '@/types/api'
+interface MenuOption { id: EntityId; label?: string; children?: MenuOption[] | null; leaf?: boolean }
+type PageCrud = CrudController<Menu, MenuForm>
 import rrOperation from '@crud/RR.operation.vue'
 import crudOperation from '@crud/CRUD.operation.vue'
 import udOperation from '@crud/UD.operation.vue'
 import DateRangePicker from '@/components/DateRangePicker/index.vue'
 
 // crud交由presenter持有
-const defaultForm = { id: null, title: null, menuSort: 999, path: null, component: null, componentName: null, iFrame: false, roles: [], pid: 0, icon: null, cache: false, hidden: false, type: 0, permission: null }
-export default {
+const defaultForm: MenuForm = { id: null, title: '', menuSort: 999, path: '', component: '', componentName: '', iFrame: false, roles: [], pid: 0, icon: '', cache: false, hidden: false, type: 0, permission: '' }
+export default defineComponent({
   name: 'Menu',
   components: { Treeselect, IconSelect, crudOperation, rrOperation, udOperation, DateRangePicker },
   cruds() {
-    return CRUD({ title: '菜单', url: 'api/menus', crudMethod: { ...crudMenu }})
+    return CRUD<Menu, MenuForm>({ title: '菜单', url: 'api/menus', crudMethod: { ...crudMenu }})
   },
   mixins: [presenter(), header(), form(defaultForm), crud()],
   data() {
     return {
-      menus: [],
+      menus: [] as MenuOption[],
       permission: {
         add: ['admin', 'menu:add'],
         edit: ['admin', 'menu:edit'],
@@ -187,8 +193,9 @@ export default {
     }
   },
   methods: {
+    resetIconSelect() { (this.$refs.iconSelect as InstanceType<typeof IconSelect>).reset() },
     // 新增与编辑前做的操作
-    [CRUD.HOOK.afterToCU](crud, form) {
+    [CRUD.HOOK.afterToCU](crud: PageCrud, form: MenuForm) {
       this.menus = []
       if (form.id != null) {
         if (form.pid === null) {
@@ -199,7 +206,7 @@ export default {
         this.menus.push({ id: 0, label: '顶级类目', children: null })
       }
     },
-    getMenus(tree, treeNode, resolve) {
+    getMenus(tree: Menu, treeNode: unknown, resolve: (rows: Menu[]) => void) {
       const params = { pid: tree.id }
       setTimeout(() => {
         crudMenu.getMenus(params).then(res => {
@@ -207,7 +214,7 @@ export default {
         })
       }, 100)
     },
-    getSupDepts(id) {
+    getSupDepts(id: EntityId) {
       crudMenu.getMenuSuperior(id).then(res => {
         const children = res.map(function(obj) {
           if (!obj.leaf && !obj.children) {
@@ -218,7 +225,7 @@ export default {
         this.menus = [{ id: 0, label: '顶级类目', children: children }]
       })
     },
-    loadMenus({ action, parentNode, callback }) {
+    loadMenus({ action, parentNode, callback }: TreeLoadOptions<MenuOption>) {
       if (action === LOAD_CHILDREN_OPTIONS) {
         crudMenu.getMenusTree(parentNode.id).then(res => {
           parentNode.children = res.map(function(obj) {
@@ -234,11 +241,11 @@ export default {
       }
     },
     // 选中图标
-    selected(name) {
+    selected(name: string) {
       this.form.icon = name
     }
   }
-}
+})
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>

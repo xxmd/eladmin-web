@@ -66,29 +66,33 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import type { FormInstance } from 'element-plus'
+import { defineComponent } from 'vue'
 import crudDatabase from '@/api/maint/database'
 import { testDbConnect } from '@/api/maint/connect'
 import eForm from './execute.vue'
-import CRUD, { presenter, header, form, crud } from '@crud/crud'
+import CRUD, { crudBindings } from '@crud/crud'
+import type { DatabaseConnection, DatabaseForm } from '@/types/business'
+const { presenter, header, form, crud } = crudBindings<DatabaseConnection, DatabaseForm>()
 import rrOperation from '@crud/RR.operation.vue'
 import crudOperation from '@crud/CRUD.operation.vue'
 import udOperation from '@crud/UD.operation.vue'
 import pagination from '@crud/Pagination.vue'
 import DateRangePicker from '@/components/DateRangePicker/index.vue'
 
-const defaultForm = { id: null, name: null, jdbcUrl: 'jdbc:mysql://', userName: null, pwd: null }
-export default {
+const defaultForm: DatabaseForm = { id: null, name: '', jdbcUrl: 'jdbc:mysql://', userName: '', pwd: '' }
+export default defineComponent({
   name: 'DataBase',
   components: { eForm, pagination, crudOperation, rrOperation, udOperation, DateRangePicker },
   cruds() {
-    return CRUD({ title: '数据库', url: 'api/database', crudMethod: { ...crudDatabase }})
+    return CRUD<DatabaseConnection, DatabaseForm>({ title: '数据库', url: 'api/database', crudMethod: { ...crudDatabase }})
   },
   mixins: [presenter(), header(), form(defaultForm), crud()],
   data() {
     return {
       currentRow: {},
-      selectIndex: '',
+      selectIndex: '' as import('@/types/api').EntityId,
       databaseInfo: '',
       loading: false,
       permission: {
@@ -114,7 +118,7 @@ export default {
   },
   methods: {
     testConnectDatabase() {
-      this.$refs['form'].validate((valid) => {
+      ;(this.$refs.form as FormInstance).validate((valid) => {
         if (valid) {
           this.loading = true
           testDbConnect(this.form).then((res) => {
@@ -127,9 +131,9 @@ export default {
       })
     },
     execute() {
-      this.$refs.execute.dialog = true
+      ;(this.$refs.execute as InstanceType<typeof eForm>).dialog = true
     },
-    handleCurrentChange(selection) {
+    handleCurrentChange(selection: DatabaseConnection[]) {
       this.crud.selections = selection
       if (selection.length === 1) {
         const row = selection[0]
@@ -141,7 +145,7 @@ export default {
       }
     }
   }
-}
+})
 </script>
 
 <style scoped>

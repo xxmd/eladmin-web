@@ -100,7 +100,7 @@
           >
             <p>确定停止并删除该任务吗？</p>
             <div style="text-align: right; margin: 0">
-              <el-button type="primary" link @click="$refs[scope.row.id].hide()">取消</el-button>
+              <el-button type="primary" link @click="closePopover(scope.row.id)">取消</el-button>
               <el-button :loading="delLoading" type="primary" @click="delMethod(scope.row.id)">确定</el-button>
             </div>
             <template #reference><el-button  type="primary" link>删除</el-button></template>
@@ -113,21 +113,26 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import type { PopoverInstance } from 'element-plus'
+import type { EntityId } from '@/types/api'
+import { defineComponent } from 'vue'
 import crudJob from '@/api/system/timing'
 import Log from './log.vue'
-import CRUD, { presenter, header, form, crud } from '@crud/crud'
+import CRUD, { crudBindings } from '@crud/crud'
+import type { ScheduledJob, ScheduledJobForm } from '@/types/business'
+const { presenter, header, form, crud } = crudBindings<ScheduledJob, ScheduledJobForm>()
 import rrOperation from '@crud/RR.operation.vue'
 import crudOperation from '@crud/CRUD.operation.vue'
 import pagination from '@crud/Pagination.vue'
 import DateRangePicker from '@/components/DateRangePicker/index.vue'
 
-const defaultForm = { id: null, jobName: null, subTask: null, beanName: null, methodName: null, params: null, cronExpression: null, pauseAfterFailure: true, isPause: false, personInCharge: null, email: null, description: null }
-export default {
+const defaultForm: ScheduledJobForm = { id: null, jobName: '', subTask: null, beanName: '', methodName: '', params: null, cronExpression: '', pauseAfterFailure: true, isPause: false, personInCharge: '', email: '', description: null }
+export default defineComponent({
   name: 'Timing',
   components: { Log, pagination, crudOperation, rrOperation, DateRangePicker },
   cruds() {
-    return CRUD({ title: '定时任务', url: 'api/jobs', crudMethod: { ...crudJob }})
+    return CRUD<ScheduledJob, ScheduledJobForm>({ title: '定时任务', url: 'api/jobs', crudMethod: { ...crudJob }})
   },
   mixins: [presenter(), header(), form(defaultForm), crud()],
   data() {
@@ -161,8 +166,9 @@ export default {
     }
   },
   methods: {
+    closePopover(id?: EntityId) { if (id !== undefined) (this.$refs[id] as PopoverInstance | undefined)?.hide() },
     // 执行
-    execute(id) {
+    execute(id: EntityId) {
       crudJob.execution(id).then(res => {
         this.crud.notify('执行成功', CRUD.NOTIFICATION_TYPE.SUCCESS)
       }).catch(err => {
@@ -170,7 +176,7 @@ export default {
       })
     },
     // 改变状态
-    updateStatus(id, status) {
+    updateStatus(id: EntityId, status: string) {
       if (status === '恢复') {
         this.updateParams(id)
       }
@@ -181,30 +187,30 @@ export default {
         console.log(err.response.data.message)
       })
     },
-    updateParams(id) {
+    updateParams(id: EntityId) {
       console.log(id)
     },
-    delMethod(id) {
+    delMethod(id: EntityId) {
       this.delLoading = true
       crudJob.del([id]).then(() => {
         this.delLoading = false
-        this.$refs[id].hide()
+        this.closePopover(id)
         this.crud.dleChangePage(1)
         this.crud.delSuccessNotify()
         this.crud.toQuery()
       }).catch(() => {
         this.delLoading = false
-        this.$refs[id].hide()
+        this.closePopover(id)
       })
     },
     // 显示日志
     doLog() {
-      this.$refs.log.dialog = true
-      this.$refs.log.doInit()
+      ;(this.$refs.log as InstanceType<typeof Log>).dialog = true
+      ;(this.$refs.log as InstanceType<typeof Log>).doInit()
     },
-    checkboxT(row, rowIndex) {
+    checkboxT(row: ScheduledJob) {
       return row.id !== 1
     }
   }
-}
+})
 </script>

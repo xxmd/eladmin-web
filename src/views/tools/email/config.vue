@@ -26,9 +26,11 @@
   </el-form>
 </template>
 
-<script>
+<script lang="ts">
+import type { FormInstance } from 'element-plus'
+import { defineComponent } from 'vue'
 import { get, update } from '@/api/tools/email'
-export default {
+export default defineComponent({
   name: 'Config',
   data() {
     return {
@@ -59,11 +61,11 @@ export default {
   methods: {
     init() {
       get().then(res => {
-        this.form = res
+        Object.assign(this.form, res)
       })
     },
     doSubmit() {
-      this.$refs['form'].validate((valid) => {
+      ;(this.$refs.form as FormInstance).validate((valid) => {
         if (valid) {
           this.loading = true
           update(this.form).then(res => {
@@ -78,12 +80,12 @@ export default {
             console.log(err.response.data.message)
           })
         } else {
-          return false
+          return
         }
       })
     }
   }
-}
+})
 </script>
 
 <style scoped>

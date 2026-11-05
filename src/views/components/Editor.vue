@@ -10,11 +10,12 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import { mapGetters } from 'vuex'
 import WangEditor from '@/components/WangEditor/index.vue'
 
-export default {
+export default defineComponent({
   name: 'Editor',
   components: { WangEditor },
   data() {
@@ -31,5 +32,5 @@ export default {
   },
   mounted() {
   }
-}
+})
 </script>

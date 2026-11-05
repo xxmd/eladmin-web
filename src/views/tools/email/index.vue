@@ -23,10 +23,11 @@
   </el-tabs>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import Config from './config.vue'
 import Send from './send.vue'
-export default {
+export default defineComponent({
   name: 'Email',
   components: { Config, Send },
   data() {
@@ -34,7 +35,7 @@ export default {
       activeName: 'second'
     }
   }
-}
+})
 </script>
 
 <style scoped>

@@ -41,7 +41,7 @@
           >
             <p>确定强制退出该用户吗？</p>
             <div style="text-align: right; margin: 0">
-              <el-button type="primary" link @click="$refs[scope.$index].hide()">取消</el-button>
+              <el-button type="primary" link @click="closePopover(scope.$index)">取消</el-button>
               <el-button :loading="delLoading" type="primary" @click="delMethod(scope.row.key, scope.$index)">确定</el-button>
             </div>
             <template #reference><el-button  type="primary" link>强退</el-button></template>
@@ -54,18 +54,23 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import type { PopoverInstance } from 'element-plus'
+import type { EntityId } from '@/types/api'
+import { defineComponent } from 'vue'
 import { del } from '@/api/monitor/online'
-import CRUD, { presenter, header, crud } from '@crud/crud'
+import CRUD, { crudBindings } from '@crud/crud'
+import type { OnlineUser } from '@/types/business'
+const { presenter, header, crud } = crudBindings<OnlineUser>()
 import rrOperation from '@crud/RR.operation.vue'
 import crudOperation from '@crud/CRUD.operation.vue'
 import pagination from '@crud/Pagination.vue'
 
-export default {
+export default defineComponent({
   name: 'OnlineUser',
   components: { pagination, crudOperation, rrOperation },
   cruds() {
-    return CRUD({ url: 'auth/online', title: '在线用户' })
+    return CRUD<OnlineUser>({ url: 'auth/online', idField: 'key', title: '在线用户' })
   },
   mixins: [presenter(), header(), crud()],
   data() {
@@ -84,7 +89,8 @@ export default {
     }
   },
   methods: {
-    doDelete(datas) {
+    closePopover(id?: EntityId) { if (id !== undefined) (this.$refs[id] as PopoverInstance | undefined)?.hide() },
+    doDelete(datas: OnlineUser[]) {
       this.$confirm(`确认强退选中的${datas.length}个用户?`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -94,8 +100,8 @@ export default {
       }).catch(() => {})
     },
     // 踢出用户
-    delMethod(key, index) {
-      const ids = []
+    delMethod(key: string | OnlineUser[], index?: number) {
+      const ids: string[] = []
       if (key instanceof Array) {
         key.forEach(val => {
           ids.push(val.key)
@@ -104,19 +110,15 @@ export default {
       this.delLoading = true
       del(ids).then(() => {
         this.delLoading = false
-        if (this.$refs[index]) {
-          this.$refs[index].hide()
-        }
+        this.closePopover(index)
         this.crud.dleChangePage(1)
         this.crud.delSuccessNotify()
         this.crud.toQuery()
       }).catch(() => {
         this.delLoading = false
-        if (this.$refs[index]) {
-          this.$refs[index].hide()
-        }
+        this.closePopover(index)
       })
     }
   }
-}
+})
 </script>

@@ -12,8 +12,9 @@
   </el-dropdown>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent } from 'vue'
+export default defineComponent({
   data() {
     return {
       sizeOptions: [
@@ -30,7 +31,7 @@ export default {
     }
   },
   methods: {
-    handleSetSize(size) {
+    handleSetSize(size: 'small' | 'default' | 'large') {
       this.$store.dispatch('app/setSize', size)
       this.refreshView()
       this.$message({
@@ -52,5 +53,5 @@ export default {
     }
   }
 
-}
+})
 </script>

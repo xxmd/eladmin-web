@@ -71,20 +71,23 @@
   </el-dialog>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
+import type { DictEntry } from '@/types/api'
 import { form } from '@crud/crud'
 
 const defaultForm = {
   id: null,
+  pid: null,
   name: '',
   jobSort: 999,
   enabled: true
 }
-export default {
+export default defineComponent({
   mixins: [form(defaultForm)],
   props: {
     jobStatus: {
-      type: Array,
+      type: Array as PropType<DictEntry[]>,
       required: true
     }
   },
@@ -100,7 +103,7 @@ export default {
       }
     }
   }
-}
+})
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>

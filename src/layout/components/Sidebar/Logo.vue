@@ -13,9 +13,10 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import Logo from '@/assets/images/logo.png'
-export default {
+export default defineComponent({
   name: 'SidebarLogo',
   props: {
     collapse: {
@@ -29,7 +30,7 @@ export default {
       logo: Logo
     }
   }
-}
+})
 </script>
 
 <style lang="scss" scoped>

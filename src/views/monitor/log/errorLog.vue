@@ -50,18 +50,21 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import { getErrDetail, delAllError } from '@/api/monitor/log'
 import Search from './search.vue'
-import CRUD, { presenter } from '@crud/crud'
+import CRUD, { crudBindings } from '@crud/crud'
+import type { AuditLog } from '@/types/business'
+const { presenter } = crudBindings<AuditLog>()
 import crudOperation from '@crud/CRUD.operation.vue'
 import pagination from '@crud/Pagination.vue'
 
-export default {
+export default defineComponent({
   name: 'ErrorLog',
   components: { Search, crudOperation, pagination },
   cruds() {
-    return CRUD({ title: '异常日志', url: 'api/logs/error' })
+    return CRUD<AuditLog>({ title: '异常日志', url: 'api/logs/error' })
   },
   mixins: [presenter()],
   data() {
@@ -79,7 +82,7 @@ export default {
   },
   methods: {
     // 获取异常详情
-    info(id) {
+    info(id: import('@/types/api').EntityId) {
       this.dialog = true
       getErrDetail(id).then(res => {
         this.errorInfo = res.exception
@@ -105,7 +108,7 @@ export default {
       })
     }
   }
-}
+})
 </script>
 
 <style scoped>

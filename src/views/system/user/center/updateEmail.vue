@@ -21,12 +21,14 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import type { FormInstance } from 'element-plus'
+import { defineComponent } from 'vue'
 import store from '@/store'
 import { validEmail } from '@/utils/validate'
 import { updateEmail } from '@/api/system/user'
 import { resetEmail } from '@/api/system/code'
-export default {
+export default defineComponent({
   props: {
     email: {
       type: String,
@@ -34,7 +36,7 @@ export default {
     }
   },
   data() {
-    const validMail = (rule, value, callback) => {
+    const validMail = (rule: unknown, value: string, callback: (error?: Error) => void) => {
       if (value === '' || value === null) {
         callback(new Error('新邮箱不能为空'))
       } else if (value === this.email) {
@@ -46,7 +48,7 @@ export default {
       }
     }
     return {
-      loading: false, dialog: false, title: '修改邮箱', form: { pass: '', email: '', code: '' },
+      timer: undefined as number | undefined, loading: false, dialog: false, title: '修改邮箱', form: { pass: '', email: '', code: '' },
       user: { email: '', password: '' }, codeLoading: false,
       buttonName: '获取验证码', isDisabled: false, time: 60,
       rules: {
@@ -62,6 +64,7 @@ export default {
       }
     }
   },
+  beforeUnmount() { window.clearInterval(this.timer) },
   methods: {
     cancel() {
       this.resetForm()
@@ -98,7 +101,7 @@ export default {
       }
     },
     doSubmit() {
-      this.$refs['form'].validate((valid) => {
+      ;(this.$refs.form as FormInstance).validate((valid) => {
         if (valid) {
           this.loading = true
           updateEmail(this.form).then(res => {
@@ -115,13 +118,13 @@ export default {
             console.log(err.response.data.message)
           })
         } else {
-          return false
+          return
         }
       })
     },
     resetForm() {
       this.dialog = false
-      this.$refs['form'].resetFields()
+      ;(this.$refs.form as FormInstance).resetFields()
       window.clearInterval(this.timer)
       this.time = 60
       this.buttonName = '获取验证码'
@@ -129,7 +132,7 @@ export default {
       this.form = { pass: '', email: '', code: '' }
     }
   }
-}
+})
 </script>
 
 <style scoped>

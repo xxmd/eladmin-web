@@ -94,30 +94,35 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import crudDept from '@/api/system/dept'
 import Treeselect from '@zanmato/vue3-treeselect'
 import '@zanmato/vue3-treeselect/dist/vue3-treeselect.min.css'
 import { LOAD_CHILDREN_OPTIONS } from '@zanmato/vue3-treeselect'
-import CRUD, { presenter, header, form, crud } from '@crud/crud'
+import CRUD, { crudBindings, type CrudController } from '@crud/crud'
+import type { Department, DepartmentForm, TreeLoadOptions } from '@/types/business'
+const { presenter, header, form, crud } = crudBindings<Department, DepartmentForm>()
+import type { EntityId } from '@/types/api'
+type PageCrud = CrudController<Department, DepartmentForm>
 import rrOperation from '@crud/RR.operation.vue'
 import crudOperation from '@crud/CRUD.operation.vue'
 import udOperation from '@crud/UD.operation.vue'
 import DateRangePicker from '@/components/DateRangePicker/index.vue'
 
-const defaultForm = { id: null, name: null, isTop: '1', subCount: 0, pid: null, deptSort: 999, enabled: 'true' }
-export default {
+const defaultForm: DepartmentForm = { id: null, name: '', isTop: '1', subCount: 0, pid: null, deptSort: 999, enabled: 'true' }
+export default defineComponent({
   name: 'Dept',
   components: { Treeselect, crudOperation, rrOperation, udOperation, DateRangePicker },
   cruds() {
-    return CRUD({ title: '部门', url: 'api/dept', crudMethod: { ...crudDept }})
+    return CRUD<Department, DepartmentForm>({ title: '部门', url: 'api/dept', crudMethod: { ...crudDept }})
   },
   mixins: [presenter(), header(), form(defaultForm), crud()],
   // 设置数据字典
   dicts: ['dept_status'],
   data() {
     return {
-      depts: [],
+      depts: [] as Department[],
       rules: {
         name: [
           { required: true, message: '请输入名称', trigger: 'blur' }
@@ -138,7 +143,7 @@ export default {
     }
   },
   methods: {
-    getDeptDatas(tree, treeNode, resolve) {
+    getDeptDatas(tree: Department, treeNode: unknown, resolve: (rows: Department[]) => void) {
       const params = { pid: tree.id }
       setTimeout(() => {
         crudDept.getDepts(params).then(res => {
@@ -147,27 +152,27 @@ export default {
       }, 100)
     },
     // 新增与编辑前做的操作
-    [CRUD.HOOK.afterToCU](crud, form) {
+    [CRUD.HOOK.afterToCU](crud: PageCrud, form: DepartmentForm) {
       if (form.pid !== null) {
         form.isTop = '0'
       } else if (form.id !== null) {
         form.isTop = '1'
       }
-      form.enabled = `${form.enabled}`
+      form.enabled = form.enabled === true || form.enabled === 'true' ? 'true' : 'false'
       if (form.id != null) {
         this.getSupDepts(form.id)
       } else {
         this.getDepts()
       }
     },
-    getSupDepts(id) {
+    getSupDepts(id: EntityId) {
       crudDept.getDeptSuperior(id, true).then(res => {
         const data = res.content
         this.buildDepts(data)
         this.depts = data
       })
     },
-    buildDepts(depts) {
+    buildDepts(depts: Department[]) {
       depts.forEach(data => {
         if (data.children) {
           this.buildDepts(data.children)
@@ -188,7 +193,7 @@ export default {
       })
     },
     // 获取弹窗内部门数据
-    loadDepts({ action, parentNode, callback }) {
+    loadDepts({ action, parentNode, callback }: TreeLoadOptions<Department>) {
       if (action === LOAD_CHILDREN_OPTIONS) {
         crudDept.getDepts({ enabled: true, pid: parentNode.id }).then(res => {
           parentNode.children = res.content.map(function(obj) {
@@ -218,14 +223,14 @@ export default {
       return true
     },
     // 改变状态
-    changeEnabled(data, val) {
-      this.$confirm('此操作将 "' + this.dict.label.dept_status[val] + '" ' + data.name + '部门, 是否继续？', '提示', {
+    changeEnabled(data: Department, val: boolean) {
+      this.$confirm('此操作将 "' + this.dict.label.dept_status[String(val)] + '" ' + data.name + '部门, 是否继续？', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
         crudDept.edit(data).then(res => {
-          this.crud.notify(this.dict.label.dept_status[val] + '成功', CRUD.NOTIFICATION_TYPE.SUCCESS)
+          this.crud.notify(this.dict.label.dept_status[String(val)] + '成功', CRUD.NOTIFICATION_TYPE.SUCCESS)
         }).catch(err => {
           data.enabled = !data.enabled
           console.log(err.response.data.message)
@@ -234,11 +239,11 @@ export default {
         data.enabled = !data.enabled
       })
     },
-    checkboxT(row, rowIndex) {
+    checkboxT(row: Department) {
       return row.id !== 1
     }
   }
-}
+})
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>

@@ -2,14 +2,15 @@
   <div :class="className" :style="{height:height,width:width}" />
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import { markRaw } from 'vue'
 import * as echarts from 'echarts'
 
 import 'echarts/theme/macarons.js' // echarts theme
 import { debounce } from '@/utils'
 
-export default {
+export default defineComponent({
   props: {
     className: {
       type: String,
@@ -26,23 +27,24 @@ export default {
   },
   data() {
     return {
-      chart: null
+      chart: null as echarts.ECharts | null,
+      resizeHandler: () => {}
     }
   },
   mounted() {
     this.initChart()
-    this.__resizeHandler = debounce(() => {
+    this.resizeHandler = debounce(() => {
       if (this.chart) {
         this.chart.resize()
       }
     }, 100)
-    window.addEventListener('resize', this.__resizeHandler)
+    window.addEventListener('resize', this.resizeHandler)
   },
   beforeUnmount() {
     if (!this.chart) {
       return
     }
-    window.removeEventListener('resize', this.__resizeHandler)
+    window.removeEventListener('resize', this.resizeHandler)
     this.chart.dispose()
     this.chart = null
   },
@@ -80,13 +82,13 @@ export default {
           name: '1990',
           data: data[0],
           type: 'scatter',
-          symbolSize: function(data) {
+          symbolSize: function(data: [number, number, number, string, number]) {
             return Math.sqrt(data[2]) / 5e2
           },
           label: {
             emphasis: {
               show: true,
-              formatter: function(param) {
+              formatter: function(param: { data: [number, number, number, string, number] }) {
                 return param.data[3]
               },
               position: 'top'
@@ -110,13 +112,13 @@ export default {
           name: '2015',
           data: data[1],
           type: 'scatter',
-          symbolSize: function(data) {
+          symbolSize: function(data: [number, number, number, string, number]) {
             return Math.sqrt(data[2]) / 5e2
           },
           label: {
             emphasis: {
               show: true,
-              formatter: function(param) {
+              formatter: function(param: { data: [number, number, number, string, number] }) {
                 return param.data[3]
               },
               position: 'top'
@@ -140,5 +142,5 @@ export default {
       })
     }
   }
-}
+})
 </script>
