@@ -7,9 +7,9 @@
         v-if="crud.optShow.add"
         v-permission="permission.add"
         class="filter-item"
-        size="mini"
+
         type="primary"
-        icon="el-icon-plus"
+        icon="IconPlus"
         @click="crud.toAdd"
       >
         新增
@@ -18,9 +18,9 @@
         v-if="crud.optShow.edit"
         v-permission="permission.edit"
         class="filter-item"
-        size="mini"
+
         type="success"
-        icon="el-icon-edit"
+        icon="IconEdit"
         :disabled="crud.selections.length !== 1"
         @click="crud.toEdit(crud.selections[0])"
       >
@@ -28,12 +28,11 @@
       </el-button>
       <el-button
         v-if="crud.optShow.del"
-        slot="reference"
         v-permission="permission.del"
         class="filter-item"
         type="danger"
-        icon="el-icon-delete"
-        size="mini"
+        icon="IconDelete"
+
         :loading="crud.delAllLoading"
         :disabled="crud.selections.length === 0"
         @click="toDelete(crud.selections)"
@@ -45,9 +44,9 @@
         :loading="crud.downloadLoading"
         :disabled="!crud.data.length"
         class="filter-item"
-        size="mini"
+
         type="warning"
-        icon="el-icon-download"
+        icon="IconDownload"
         @click="crud.doExport"
       >导出</el-button>
       <!--右侧-->
@@ -55,15 +54,15 @@
     </span>
     <el-button-group class="crud-opts-right">
       <el-button
-        size="mini"
+
         plain
         type="info"
-        icon="el-icon-search"
+        icon="IconSearch"
         @click="toggleSearch()"
       />
       <el-button
-        size="mini"
-        icon="el-icon-refresh"
+
+        icon="IconRefresh"
         @click="crud.refresh()"
       />
       <el-popover
@@ -71,16 +70,16 @@
         width="150"
         trigger="click"
       >
-        <el-button
-          slot="reference"
-          size="mini"
-          icon="el-icon-s-grid"
+        <template #reference><el-button
+
+
+          icon="IconGrid"
         >
           <i
             class="fa fa-caret-down"
             aria-hidden="true"
           />
-        </el-button>
+        </el-button></template>
         <el-checkbox
           v-model="allColumnsSelected"
           :indeterminate="allColumnsSelectedIndeterminate"
@@ -137,6 +136,7 @@ export default {
   data() {
     return {
       tableColumns: [],
+      columnConfigs: [],
       allColumnsSelected: true,
       allColumnsSelectedIndeterminate: false,
       tableUnwatcher: null,
@@ -154,7 +154,7 @@ export default {
         }
       })
     },
-    'crud.props.table.store.states.columns'() {
+    'crud.props.table.columns'() {
       this.updateTableColumns()
     }
   },
@@ -177,13 +177,14 @@ export default {
       }
       this.ignoreNextTableColumnsChange = false
       const columns = []
-      const fullTableColumns = table.$children.map(e => e.columnConfig).filter(columnFilter)
+      const fullTableColumns = [...this.columnConfigs, ...refCols].filter((column, index, all) => all.findIndex(item => item.property === column.property) === index)
+      this.columnConfigs = fullTableColumns
       cols = sortWithRef(fullTableColumns, refCols)
       cols.forEach(config => {
         const column = {
           property: config.property,
           label: config.label,
-          visible: refCols.indexOf(config) !== -1
+          visible: this.crud.columnVisible(config.property)
         }
         columns.push(column)
       })
@@ -233,17 +234,7 @@ export default {
       this.updateColumnVisible(item)
     },
     updateColumnVisible(item) {
-      const table = this.crud.props.table
-      const vm = table.$children.find(e => e.prop === item.property)
-      const columnConfig = vm.columnConfig
-      if (item.visible) {
-        // 找出合适的插入点
-        const columnIndex = this.tableColumns.indexOf(item)
-        vm.owner.store.commit('insertColumn', columnConfig, columnIndex + 1, null)
-      } else {
-        vm.owner.store.commit('removeColumn', columnConfig, null)
-      }
-      this.ignoreNextTableColumnsChange = true
+      this.crud.updateProp('hiddenColumns', this.tableColumns.filter(column => !column.visible).map(column => column.property))
     },
     toggleSearch() {
       this.crud.props.searchToggle = !this.crud.props.searchToggle

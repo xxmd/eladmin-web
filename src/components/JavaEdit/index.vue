@@ -5,6 +5,7 @@
 </template>
 
 <script>
+import { markRaw } from 'vue'
 import CodeMirror from 'codemirror'
 import 'codemirror/lib/codemirror.css'
 // 替换主题这里需修改名称
@@ -12,7 +13,7 @@ import 'codemirror/theme/idea.css'
 import 'codemirror/mode/clike/clike'
 export default {
   props: {
-    value: {
+    modelValue: {
       type: String,
       required: true
     },
@@ -27,10 +28,10 @@ export default {
     }
   },
   watch: {
-    value(value) {
+    modelValue(value) {
       const editorValue = this.editor.getValue()
       if (value !== editorValue) {
-        this.editor.setValue(this.value)
+        this.editor.setValue(this.modelValue)
       }
     },
     height(value) {
@@ -38,7 +39,7 @@ export default {
     }
   },
   mounted() {
-    this.editor = CodeMirror.fromTextArea(this.$refs.textarea, {
+    this.editor = markRaw(CodeMirror.fromTextArea(this.$refs.textarea, {
       mode: 'text/x-java',
       lineNumbers: true,
       lint: true,
@@ -48,10 +49,11 @@ export default {
       // 替换主题这里需修改名称
       theme: 'idea',
       readOnly: true
-    })
+    }))
     this.editor.setSize('auto', this.height)
-    this.editor.setValue(this.value)
+    this.editor.setValue(this.modelValue)
   },
+  beforeUnmount() { this.editor?.toTextArea() },
   methods: {
     getValue() {
       return this.editor.getValue()
@@ -65,13 +67,13 @@ export default {
     height: 100%;
     margin-bottom: 10px;
   }
-  .json-editor >>> .CodeMirror {
+  .json-editor :deep(.CodeMirror) {
     font-size: 14px;
     font-weight:normal
   }
-  .json-editor >>> .CodeMirror-scroll{
+  .json-editor :deep(.CodeMirror-scroll) {
   }
-  .json-editor >>> .cm-s-rubyblue span.cm-string {
+  .json-editor :deep(.cm-s-rubyblue span.cm-string) {
     color: #F08047;
   }
 </style>

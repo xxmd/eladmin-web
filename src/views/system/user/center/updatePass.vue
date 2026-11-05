@@ -1,7 +1,7 @@
 <template>
   <div style="display: inline-block">
-    <el-dialog :visible.sync="dialog" :close-on-click-modal="false" :before-close="cancel" :title="title" append-to-body width="500px" @close="cancel">
-      <el-form ref="form" :model="form" :rules="rules" size="small" label-width="88px">
+    <el-dialog v-model="dialog" :close-on-click-modal="false" :before-close="cancel" :title="title" append-to-body width="500px" @close="cancel">
+      <el-form ref="form" :model="form" :rules="rules" label-width="88px">
         <el-form-item label="旧密码" prop="oldPass">
           <el-input v-model="form.oldPass" type="password" auto-complete="on" style="width: 370px;" />
         </el-form-item>
@@ -12,10 +12,10 @@
           <el-input v-model="form.confirmPass" type="password" auto-complete="on" style="width: 370px;" />
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="text" @click="cancel">取消</el-button>
+      <template #footer><div  class="dialog-footer">
+        <el-button type="primary" link @click="cancel">取消</el-button>
         <el-button :loading="loading" type="primary" @click="doSubmit">确认</el-button>
-      </div>
+      </div></template>
     </el-dialog>
   </div>
 </template>

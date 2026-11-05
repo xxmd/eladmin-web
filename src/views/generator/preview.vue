@@ -1,13 +1,13 @@
 <template>
   <el-tabs v-model="activeName" type="card">
     <el-tab-pane v-for="item in data" :key="item.name" :lazy="true" :label="item.name" :name="item.name">
-      <Java :value="item.content" :height="height" />
+      <Java :model-value="item.content" :height="height" />
     </el-tab-pane>
   </el-tabs>
 </template>
 
 <script>
-import Java from '@/components/JavaEdit/index'
+import Java from '@/components/JavaEdit/index.vue'
 import { generator } from '@/api/generator/generator'
 export default {
   name: 'Preview',

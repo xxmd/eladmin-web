@@ -1,12 +1,7 @@
-<script>
-export default {
-  created() {
-    const { params, query } = this.$route
-    const { path } = params
-    this.$router.replace({ path: '/' + path, query })
-  },
-  render: function(h) {
-    return h() // avoid warning message
-  }
-}
+<template><span /></template>
+<script setup lang="ts">
+import { useRoute, useRouter } from 'vue-router'
+const route = useRoute()
+const path = route.params.path
+void useRouter().replace({ path: '/' + (Array.isArray(path) ? path.join('/') : path), query: route.query })
 </script>

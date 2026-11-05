@@ -12,7 +12,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import WangEditor from '@/components/WangEditor/index'
+import WangEditor from '@/components/WangEditor/index.vue'
 
 export default {
   name: 'Editor',

@@ -13,16 +13,16 @@
       </right-panel>
     </div>
     <!--  防止刷新后主题丢失  -->
-    <Theme v-show="false" ref="theme" />
+    <div v-show="false"><Theme ref="theme" /></div>
   </div>
 </template>
 
 <script>
-import RightPanel from '@/components/RightPanel'
+import RightPanel from '@/components/RightPanel/index.vue'
 import { AppMain, Navbar, Settings, Sidebar, TagsView } from './components'
 import ResizeMixin from './mixin/ResizeHandler'
 import { mapState } from 'vuex'
-import Theme from '@/components/ThemePicker'
+import Theme from '@/components/ThemePicker/index.vue'
 import Cookies from 'js-cookie'
 export default {
   name: 'Layout',
@@ -71,8 +71,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-  @import "~@/assets/styles/mixin.scss";
-  @import "~@/assets/styles/variables.scss";
+  @import "@/assets/styles/mixin.scss";
+  @import "@/assets/styles/variables.scss";
 
   .app-wrapper {
     @include clearfix;

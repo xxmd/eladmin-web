@@ -3,7 +3,7 @@
     <el-input
       v-model="query.blurry"
       clearable
-      size="small"
+
       placeholder="请输入你要搜索的内容"
       style="width: 200px;"
       class="filter-item"
@@ -15,8 +15,8 @@
 
 <script>
 import { header } from '@crud/crud'
-import rrOperation from '@crud/RR.operation'
-import DateRangePicker from '@/components/DateRangePicker'
+import rrOperation from '@crud/RR.operation.vue'
+import DateRangePicker from '@/components/DateRangePicker/index.vue'
 export default {
   components: { rrOperation, DateRangePicker },
   mixins: [header()]

@@ -2,37 +2,37 @@
   <div class="app-container">
     <div class="head-container">
       <div v-if="crud.props.searchToggle">
-        <el-input v-model="query.username" clearable size="small" placeholder="输入用户名称查询" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
+        <el-input v-model="query.username" clearable placeholder="输入用户名称查询" style="width: 200px;" class="filter-item" @keyup.enter="crud.toQuery" />
         <rrOperation />
       </div>
       <crudOperation>
-        <el-button
-          slot="left"
+        <template #left><el-button
+
           class="filter-item"
           type="danger"
-          icon="el-icon-delete"
-          size="mini"
+          icon="IconDelete"
+
           :loading="delLoading"
           :disabled="crud.selections.length === 0"
           @click="doDelete(crud.selections)"
         >
           强退
-        </el-button>
+        </el-button></template>
       </crudOperation>
     </div>
     <!--表格渲染-->
-    <el-table ref="table" v-loading="crud.loading" :data="crud.data" style="width: 100%;" @selection-change="crud.selectionChangeHandler">
+    <el-table @expand-change="crud.expandChange" ref="table" v-loading="crud.loading" :data="crud.data" style="width: 100%;" @selection-change="crud.selectionChangeHandler">
       <el-table-column type="selection" width="55" />
-      <el-table-column :show-overflow-tooltip="true" prop="uid" label="会话编号" />
-      <el-table-column prop="userName" label="用户名" />
-      <el-table-column prop="nickName" label="用户昵称" />
-      <el-table-column prop="dept" label="部门" />
-      <el-table-column prop="ip" label="登录IP" />
-      <el-table-column :show-overflow-tooltip="true" prop="address" label="登录地点" />
-      <el-table-column prop="browser" label="浏览器" />
-      <el-table-column prop="loginTime" label="登录时间" />
+      <el-table-column v-if="crud.columnVisible('uid')" :show-overflow-tooltip="true" prop="uid" label="会话编号" />
+      <el-table-column v-if="crud.columnVisible('userName')" prop="userName" label="用户名" />
+      <el-table-column v-if="crud.columnVisible('nickName')" prop="nickName" label="用户昵称" />
+      <el-table-column v-if="crud.columnVisible('dept')" prop="dept" label="部门" />
+      <el-table-column v-if="crud.columnVisible('ip')" prop="ip" label="登录IP" />
+      <el-table-column v-if="crud.columnVisible('address')" :show-overflow-tooltip="true" prop="address" label="登录地点" />
+      <el-table-column v-if="crud.columnVisible('browser')" prop="browser" label="浏览器" />
+      <el-table-column v-if="crud.columnVisible('loginTime')" prop="loginTime" label="登录时间" />
       <el-table-column label="操作" width="70px" fixed="right">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-popover
             :ref="scope.$index"
             v-permission="['admin']"
@@ -41,10 +41,10 @@
           >
             <p>确定强制退出该用户吗？</p>
             <div style="text-align: right; margin: 0">
-              <el-button size="mini" type="text" @click="$refs[scope.$index].doClose()">取消</el-button>
-              <el-button :loading="delLoading" type="primary" size="mini" @click="delMethod(scope.row.key, scope.$index)">确定</el-button>
+              <el-button type="primary" link @click="$refs[scope.$index].hide()">取消</el-button>
+              <el-button :loading="delLoading" type="primary" @click="delMethod(scope.row.key, scope.$index)">确定</el-button>
             </div>
-            <el-button slot="reference" size="mini" type="text">强退</el-button>
+            <template #reference><el-button  type="primary" link>强退</el-button></template>
           </el-popover>
         </template>
       </el-table-column>
@@ -57,9 +57,9 @@
 <script>
 import { del } from '@/api/monitor/online'
 import CRUD, { presenter, header, crud } from '@crud/crud'
-import rrOperation from '@crud/RR.operation'
-import crudOperation from '@crud/CRUD.operation'
-import pagination from '@crud/Pagination'
+import rrOperation from '@crud/RR.operation.vue'
+import crudOperation from '@crud/CRUD.operation.vue'
+import pagination from '@crud/Pagination.vue'
 
 export default {
   name: 'OnlineUser',
@@ -105,7 +105,7 @@ export default {
       del(ids).then(() => {
         this.delLoading = false
         if (this.$refs[index]) {
-          this.$refs[index].doClose()
+          this.$refs[index].hide()
         }
         this.crud.dleChangePage(1)
         this.crud.delSuccessNotify()
@@ -113,7 +113,7 @@ export default {
       }).catch(() => {
         this.delLoading = false
         if (this.$refs[index]) {
-          this.$refs[index].doClose()
+          this.$refs[index].hide()
         }
       })
     }

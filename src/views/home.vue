@@ -30,12 +30,12 @@
 </template>
 
 <script>
-import GithubCorner from '@/components/GithubCorner'
-import PanelGroup from './dashboard/PanelGroup'
-import LineChart from './dashboard/LineChart'
-import RadarChart from '@/components/Echarts/RadarChart'
-import PieChart from '@/components/Echarts/PieChart'
-import BarChart from '@/components/Echarts/BarChart'
+import GithubCorner from '@/components/GithubCorner/index.vue'
+import PanelGroup from './dashboard/PanelGroup.vue'
+import LineChart from './dashboard/LineChart.vue'
+import RadarChart from '@/components/Echarts/RadarChart.vue'
+import PieChart from '@/components/Echarts/PieChart.vue'
+import BarChart from '@/components/Echarts/BarChart.vue'
 
 const lineChartData = {
   newVisitis: {

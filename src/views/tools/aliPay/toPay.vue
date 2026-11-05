@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-form ref="form" :model="form" :rules="rules" style="margin-top: 6px;" size="small" label-width="90px">
+    <el-form ref="form" :model="form" :rules="rules" style="margin-top: 6px;" label-width="90px">
       <el-form-item label="商品名称" prop="subject">
         <el-input v-model="form.subject" style="width: 35%" />
       </el-form-item>
@@ -9,10 +9,10 @@
         <span style="color: #C0C0C0;margin-left: 10px;">测试允许区间(0,5000]</span>
       </el-form-item>
       <el-form-item label="商品描述" prop="body">
-        <el-input v-model="form.body" style="width: 35%" rows="8" type="textarea" />
+        <el-input v-model="form.body" style="width: 35%" :rows="8" type="textarea" />
       </el-form-item>
       <el-form-item label="">
-        <el-button :loading="loading" size="medium" type="primary" @click="doSubmit">去支付</el-button>
+        <el-button :loading="loading" size="default" type="primary" @click="doSubmit">去支付</el-button>
       </el-form-item>
     </el-form>
   </div>

@@ -1,23 +1,22 @@
 <template>
   <div class="app-container" style="padding: 8px;">
     <!--表单组件-->
-    <eForm ref="form" />
     <!-- 工具栏 -->
     <div class="head-container">
       <div v-if="crud.props.searchToggle">
         <!-- 搜索 -->
-        <el-input v-model="query.key" clearable size="small" placeholder="输入文件名称搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="toQuery" />
+        <el-input v-model="query.key" clearable placeholder="输入文件名称搜索" style="width: 200px;" class="filter-item" @keyup.enter="crud.toQuery" />
         <date-range-picker v-model="query.createTime" class="date-item" />
         <rrOperation />
       </div>
       <crudOperation :permission="permission">
-        <template slot="left">
+        <template #left>
           <!-- 上传 -->
-          <el-button class="filter-item" size="mini" type="primary" icon="el-icon-upload" @click="dialog = true">上传</el-button>
+          <el-button class="filter-item" type="primary" icon="IconUpload" @click="dialog = true">上传</el-button>
         </template>
       </crudOperation>
       <!-- 文件上传 -->
-      <el-dialog :visible.sync="dialog" :close-on-click-modal="false" append-to-body width="500px" @close="doSubmit">
+      <el-dialog v-model="dialog" :close-on-click-modal="false" append-to-body width="500px" @close="doSubmit">
         <el-upload
           :before-remove="handleBeforeRemove"
           :on-success="handleSuccess"
@@ -28,25 +27,25 @@
           class="upload-demo"
           multiple
         >
-          <el-button size="small" type="primary">点击上传</el-button>
-          <div slot="tip" style="display: block;" class="el-upload__tip">请勿上传违法文件，且文件不超过15M</div>
+          <el-button type="primary">点击上传</el-button>
+          <template #tip><div  style="display: block;" class="el-upload__tip">请勿上传违法文件，且文件不超过15M</div></template>
         </el-upload>
-        <div slot="footer" class="dialog-footer">
+        <template #footer><div  class="dialog-footer">
           <el-button type="primary" @click="doSubmit">确认</el-button>
-        </div>
+        </div></template>
       </el-dialog>
       <!--表格渲染-->
-      <el-table ref="table" v-loading="crud.loading" :data="crud.data" style="width: 100%;" @selection-change="crud.selectionChangeHandler">
+      <el-table @expand-change="crud.expandChange" ref="table" v-loading="crud.loading" :data="crud.data" style="width: 100%;" @selection-change="crud.selectionChangeHandler">
         <el-table-column type="selection" width="55" />
-        <el-table-column prop="fileName" :show-overflow-tooltip="true" label="文件名">
-          <template slot-scope="scope">
+        <el-table-column v-if="crud.columnVisible('fileName')" prop="fileName" :show-overflow-tooltip="true" label="文件名">
+          <template #default="scope">
             <a href="JavaScript:" class="el-link el-link--primary" target="_blank" type="primary" @click="download(scope.row.id)">{{ scope.row.fileName }}</a>
           </template>
         </el-table-column>
-        <el-table-column prop="fileRealName" width="350" label="真实文件名称" />
-        <el-table-column :show-overflow-tooltip="true" prop="fileType" label="文件类型" @selection-change="crud.selectionChangeHandler" />
-        <el-table-column prop="fileSize" label="文件大小" />
-        <el-table-column prop="updateTime" label="创建日期" />
+        <el-table-column v-if="crud.columnVisible('fileRealName')" prop="fileRealName" width="350" label="真实文件名称" />
+        <el-table-column v-if="crud.columnVisible('fileType')" :show-overflow-tooltip="true" prop="fileType" label="文件类型" @selection-change="crud.selectionChangeHandler" />
+        <el-table-column v-if="crud.columnVisible('fileSize')" prop="fileSize" label="文件大小" />
+        <el-table-column v-if="crud.columnVisible('updateTime')" prop="updateTime" label="创建日期" />
       </el-table>
       <!--分页组件-->
       <pagination />
@@ -59,10 +58,10 @@ import s3Storage from '@/api/tools/s3Storage'
 import { mapGetters } from 'vuex'
 import { getToken } from '@/utils/auth'
 import CRUD, { presenter, header, crud } from '@crud/crud'
-import rrOperation from '@crud/RR.operation'
-import crudOperation from '@crud/CRUD.operation'
-import pagination from '@crud/Pagination'
-import DateRangePicker from '@/components/DateRangePicker'
+import rrOperation from '@crud/RR.operation.vue'
+import crudOperation from '@crud/CRUD.operation.vue'
+import pagination from '@crud/Pagination.vue'
+import DateRangePicker from '@/components/DateRangePicker/index.vue'
 
 export default {
   components: { pagination, crudOperation, rrOperation, DateRangePicker },

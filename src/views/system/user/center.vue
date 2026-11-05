@@ -3,9 +3,9 @@
     <el-row :gutter="20">
       <el-col :xs="24" :sm="24" :md="8" :lg="6" :xl="5" style="margin-bottom: 10px">
         <el-card class="box-card">
-          <div slot="header" class="clearfix">
+          <template #header><div  class="clearfix">
             <span>个人信息</span>
-          </div>
+          </div></template>
           <div>
             <div style="text-align: center">
               <div class="el-upload">
@@ -40,7 +40,7 @@
         <el-card class="box-card">
           <el-tabs v-model="activeName" @tab-click="handleClick">
             <el-tab-pane label="用户资料" name="first">
-              <el-form ref="form" :model="form" :rules="rules" style="margin-top: 10px;" size="small" label-width="65px">
+              <el-form ref="form" :model="form" :rules="rules" style="margin-top: 10px;" label-width="65px">
                 <el-form-item label="昵称" prop="nickName">
                   <el-input v-model="form.nickName" style="width: 35%" />
                   <span style="color: #C0C0C0;margin-left: 10px;">用户昵称不作为登录使用</span>
@@ -51,12 +51,12 @@
                 </el-form-item>
                 <el-form-item label="性别">
                   <el-radio-group v-model="form.gender" style="width: 178px">
-                    <el-radio label="男">男</el-radio>
-                    <el-radio label="女">女</el-radio>
+                    <el-radio value="男">男</el-radio>
+                    <el-radio value="女">女</el-radio>
                   </el-radio-group>
                 </el-form-item>
                 <el-form-item label="">
-                  <el-button :loading="saveLoading" size="mini" type="primary" @click="doSubmit">保存配置</el-button>
+                  <el-button :loading="saveLoading" type="primary" @click="doSubmit">保存配置</el-button>
                 </el-form-item>
               </el-form>
             </el-tab-pane>
@@ -68,7 +68,7 @@
                 <el-table-column :show-overflow-tooltip="true" prop="address" label="IP来源" />
                 <el-table-column prop="browser" label="浏览器" />
                 <el-table-column prop="time" label="请求耗时" align="center">
-                  <template slot-scope="scope">
+                  <template #default="scope">
                     <el-tag v-if="scope.row.time <= 300">{{ scope.row.time }}ms</el-tag>
                     <el-tag v-else-if="scope.row.time <= 1000" type="warning">{{ scope.row.time }}ms</el-tag>
                     <el-tag v-else type="danger">{{ scope.row.time }}ms</el-tag>
@@ -77,10 +77,10 @@
                 <el-table-column
                   align="right"
                 >
-                  <template slot="header">
-                    <div style="display:inline-block;float: right;cursor: pointer" @click="init">创建日期<i class="el-icon-refresh" style="margin-left: 40px" /></div>
+                  <template #header>
+                    <div style="display:inline-block;float: right;cursor: pointer" @click="init">创建日期<IconRefresh class="legacy-icon " style="margin-left: 40px" /></div>
                   </template>
-                  <template slot-scope="scope">
+                  <template #default="scope">
                     <span>{{ scope.row.createTime }}</span>
                   </template>
                 </el-table-column>
@@ -107,8 +107,8 @@
 <script>
 import myUpload from 'vue-image-crop-upload'
 import { mapGetters } from 'vuex'
-import updatePass from './center/updatePass'
-import updateEmail from './center/updateEmail'
+import updatePass from './center/updatePass.vue'
+import updateEmail from './center/updateEmail.vue'
 import { getToken } from '@/utils/auth'
 import store from '@/store'
 import { isvalidPhone } from '@/utils/validate'
@@ -166,7 +166,7 @@ export default {
       this.show = !this.show
     },
     handleClick(tab, event) {
-      if (tab.name === 'second') {
+      if (tab.props.name === 'second') {
         this.init()
       }
     },

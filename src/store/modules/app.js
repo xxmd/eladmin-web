@@ -1,12 +1,15 @@
 import Cookies from 'js-cookie'
 
+// Separate native Element Plus preferences from the previous compact theme.
+const sizeCookie = 'element-plus-size'
+
 const state = {
   sidebar: {
     opened: Cookies.get('sidebarStatus') ? !!+Cookies.get('sidebarStatus') : true,
     withoutAnimation: false
   },
   device: 'desktop',
-  size: Cookies.get('size') || 'small'
+  size: Cookies.get(sizeCookie) || 'default'
 }
 
 const mutations = {
@@ -29,7 +32,7 @@ const mutations = {
   },
   SET_SIZE: (state, size) => {
     state.size = size
-    Cookies.set('size', size)
+    Cookies.set(sizeCookie, size)
   }
 }
 

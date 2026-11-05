@@ -4,20 +4,20 @@
     <div class="head-container">
       <div v-if="crud.props.searchToggle">
         <!-- 搜索 -->
-        <el-input v-model="query.blurry" clearable size="small" placeholder="模糊搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
+        <el-input v-model="query.blurry" clearable placeholder="模糊搜索" style="width: 200px;" class="filter-item" @keyup.enter="crud.toQuery" />
         <date-range-picker v-model="query.createTime" class="date-item" />
         <rrOperation />
       </div>
       <crudOperation :permission="permission" />
     </div>
     <!--表单渲染-->
-    <el-dialog append-to-body :close-on-click-modal="false" :before-close="crud.cancelCU" :visible.sync="crud.status.cu > 0" :title="crud.status.title" width="580px">
-      <el-form ref="form" :inline="true" :model="form" :rules="rules" size="small" label-width="80px">
+    <el-dialog append-to-body :close-on-click-modal="false" :before-close="crud.cancelCU" :model-value="crud.status.cu > 0" :title="crud.status.title" width="580px">
+      <el-form ref="form" :inline="true" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="菜单类型" prop="type">
-          <el-radio-group v-model="form.type" size="mini" style="width: 178px">
-            <el-radio-button label="0">目录</el-radio-button>
-            <el-radio-button label="1">菜单</el-radio-button>
-            <el-radio-button label="2">按钮</el-radio-button>
+          <el-radio-group v-model="form.type" style="width: 178px">
+            <el-radio-button value="0">目录</el-radio-button>
+            <el-radio-button value="1">菜单</el-radio-button>
+            <el-radio-button value="2">按钮</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item v-show="form.type.toString() !== '2'" label="菜单图标" prop="icon">
@@ -28,28 +28,28 @@
             @show="$refs['iconSelect'].reset()"
           >
             <IconSelect ref="iconSelect" @selected="selected" />
-            <el-input slot="reference" v-model="form.icon" style="width: 450px;" placeholder="点击选择图标" readonly>
-              <svg-icon v-if="form.icon" slot="prefix" :icon-class="form.icon" class="el-input__icon" style="height: 32px;width: 16px;" />
-              <i v-else slot="prefix" class="el-icon-search el-input__icon" />
-            </el-input>
+            <template #reference><el-input  v-model="form.icon" style="width: 450px;" placeholder="点击选择图标" readonly>
+              <template #prefix><svg-icon v-if="form.icon"  :icon-class="form.icon" class="el-input__icon" style="height: 32px;width: 16px;" />
+              <IconSearch v-else  class="legacy-icon el-input__icon" /></template>
+            </el-input></template>
           </el-popover>
         </el-form-item>
         <el-form-item v-show="form.type.toString() !== '2'" label="外链菜单" prop="iFrame">
-          <el-radio-group v-model="form.iFrame" size="mini">
-            <el-radio-button label="true">是</el-radio-button>
-            <el-radio-button label="false">否</el-radio-button>
+          <el-radio-group v-model="form.iFrame">
+            <el-radio-button value="true">是</el-radio-button>
+            <el-radio-button value="false">否</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item v-show="form.type.toString() === '1'" label="菜单缓存" prop="cache">
-          <el-radio-group v-model="form.cache" size="mini">
-            <el-radio-button label="true">是</el-radio-button>
-            <el-radio-button label="false">否</el-radio-button>
+          <el-radio-group v-model="form.cache">
+            <el-radio-button value="true">是</el-radio-button>
+            <el-radio-button value="false">否</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item v-show="form.type.toString() !== '2'" label="菜单可见" prop="hidden">
-          <el-radio-group v-model="form.hidden" size="mini">
-            <el-radio-button label="false">是</el-radio-button>
-            <el-radio-button label="true">否</el-radio-button>
+          <el-radio-group v-model="form.hidden">
+            <el-radio-button value="false">是</el-radio-button>
+            <el-radio-button value="true">否</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item v-if="form.type.toString() !== '2'" label="菜单标题" prop="title">
@@ -83,14 +83,14 @@
           />
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="text" @click="crud.cancelCU">取消</el-button>
+      <template #footer><div  class="dialog-footer">
+        <el-button type="primary" link @click="crud.cancelCU">取消</el-button>
         <el-button :loading="crud.status.cu === 2" type="primary" @click="crud.submitCU">确认</el-button>
-      </div>
+      </div></template>
     </el-dialog>
     <!--表格渲染-->
     <el-table
-      ref="table"
+      @expand-change="crud.expandChange" ref="table"
       v-loading="crud.loading"
       lazy
       :load="getMenus"
@@ -102,40 +102,40 @@
       @selection-change="crud.selectionChangeHandler"
     >
       <el-table-column type="selection" width="55" />
-      <el-table-column :show-overflow-tooltip="true" label="菜单标题" width="125px" prop="title" />
-      <el-table-column prop="icon" label="图标" align="center" width="60px">
-        <template slot-scope="scope">
+      <el-table-column v-if="crud.columnVisible('title')" :show-overflow-tooltip="true" label="菜单标题" width="125px" prop="title" />
+      <el-table-column v-if="crud.columnVisible('icon')" prop="icon" label="图标" align="center" width="60px">
+        <template #default="scope">
           <svg-icon :icon-class="scope.row.icon ? scope.row.icon : ''" />
         </template>
       </el-table-column>
-      <el-table-column prop="menuSort" align="center" label="排序">
-        <template slot-scope="scope">
+      <el-table-column v-if="crud.columnVisible('menuSort')" prop="menuSort" align="center" label="排序">
+        <template #default="scope">
           {{ scope.row.menuSort }}
         </template>
       </el-table-column>
-      <el-table-column :show-overflow-tooltip="true" prop="permission" label="权限标识" />
-      <el-table-column :show-overflow-tooltip="true" prop="component" label="组件路径" />
-      <el-table-column prop="iFrame" label="外链" width="75px">
-        <template slot-scope="scope">
+      <el-table-column v-if="crud.columnVisible('permission')" :show-overflow-tooltip="true" prop="permission" label="权限标识" />
+      <el-table-column v-if="crud.columnVisible('component')" :show-overflow-tooltip="true" prop="component" label="组件路径" />
+      <el-table-column v-if="crud.columnVisible('iFrame')" prop="iFrame" label="外链" width="75px">
+        <template #default="scope">
           <span v-if="scope.row.iFrame">是</span>
           <span v-else>否</span>
         </template>
       </el-table-column>
-      <el-table-column prop="cache" label="缓存" width="75px">
-        <template slot-scope="scope">
+      <el-table-column v-if="crud.columnVisible('cache')" prop="cache" label="缓存" width="75px">
+        <template #default="scope">
           <span v-if="scope.row.cache">是</span>
           <span v-else>否</span>
         </template>
       </el-table-column>
-      <el-table-column prop="hidden" label="可见" width="75px">
-        <template slot-scope="scope">
+      <el-table-column v-if="crud.columnVisible('hidden')" prop="hidden" label="可见" width="75px">
+        <template #default="scope">
           <span v-if="scope.row.hidden">否</span>
           <span v-else>是</span>
         </template>
       </el-table-column>
-      <el-table-column prop="createTime" label="创建日期" width="135px" />
+      <el-table-column v-if="crud.columnVisible('createTime')" prop="createTime" label="创建日期" width="135px" />
       <el-table-column v-if="checkPer(['admin','menu:edit','menu:del'])" label="操作" width="130px" align="center" fixed="right">
-        <template slot-scope="scope">
+        <template #default="scope">
           <udOperation
             :data="scope.row"
             :permission="permission"
@@ -149,15 +149,15 @@
 
 <script>
 import crudMenu from '@/api/system/menu'
-import IconSelect from '@/components/IconSelect'
-import Treeselect from '@riophae/vue-treeselect'
-import '@riophae/vue-treeselect/dist/vue-treeselect.css'
-import { LOAD_CHILDREN_OPTIONS } from '@riophae/vue-treeselect'
+import IconSelect from '@/components/IconSelect/index.vue'
+import Treeselect from '@zanmato/vue3-treeselect'
+import '@zanmato/vue3-treeselect/dist/vue3-treeselect.min.css'
+import { LOAD_CHILDREN_OPTIONS } from '@zanmato/vue3-treeselect'
 import CRUD, { presenter, header, form, crud } from '@crud/crud'
-import rrOperation from '@crud/RR.operation'
-import crudOperation from '@crud/CRUD.operation'
-import udOperation from '@crud/UD.operation'
-import DateRangePicker from '@/components/DateRangePicker'
+import rrOperation from '@crud/RR.operation.vue'
+import crudOperation from '@crud/CRUD.operation.vue'
+import udOperation from '@crud/UD.operation.vue'
+import DateRangePicker from '@/components/DateRangePicker/index.vue'
 
 // crud交由presenter持有
 const defaultForm = { id: null, title: null, menuSort: 999, path: null, component: null, componentName: null, iFrame: false, roles: [], pid: 0, icon: null, cache: false, hidden: false, type: 0, permission: null }
@@ -242,10 +242,10 @@ export default {
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>
- ::v-deep .el-input-number .el-input__inner {
+ :deep(.el-input-number .el-input__inner) {
     text-align: left;
   }
- ::v-deep .vue-treeselect__control,::v-deep .vue-treeselect__placeholder,::v-deep .vue-treeselect__single-value {
+ :deep(.vue-treeselect__control, .vue-treeselect__placeholder, .vue-treeselect__single-value) {
     height: 30px;
     line-height: 30px;
   }

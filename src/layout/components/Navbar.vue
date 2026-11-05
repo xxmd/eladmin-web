@@ -6,7 +6,7 @@
 
     <div class="right-menu">
       <template v-if="device!=='mobile'">
-        <search id="header-search" class="right-menu-item" />
+        <header-search id="header-search" class="right-menu-item" />
 
         <el-tooltip content="项目文档" effect="dark" placement="bottom">
           <Doc class="right-menu-item hover-effect" />
@@ -25,9 +25,9 @@
       <el-dropdown class="avatar-container right-menu-item hover-effect" trigger="click">
         <div class="avatar-wrapper">
           <img :src="user.avatarName ? baseApi + '/avatar/' + user.avatarName : Avatar" class="user-avatar">
-          <i class="el-icon-caret-bottom" />
+          <IconCaretBottom class="legacy-icon el-icon-caret-bottom" />
         </div>
-        <el-dropdown-menu slot="dropdown">
+        <template #dropdown><el-dropdown-menu >
           <span style="display:block;" @click="show = true">
             <el-dropdown-item>
               布局设置
@@ -43,7 +43,7 @@
               退出登录
             </el-dropdown-item>
           </span>
-        </el-dropdown-menu>
+        </el-dropdown-menu></template>
       </el-dropdown>
     </div>
   </div>
@@ -51,12 +51,12 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import Breadcrumb from '@/components/Breadcrumb'
-import Hamburger from '@/components/Hamburger'
-import Doc from '@/components/Doc'
-import Screenfull from '@/components/Screenfull'
-import SizeSelect from '@/components/SizeSelect'
-import Search from '@/components/HeaderSearch'
+import Breadcrumb from '@/components/Breadcrumb/index.vue'
+import Hamburger from '@/components/Hamburger/index.vue'
+import Doc from '@/components/Doc/index.vue'
+import Screenfull from '@/components/Screenfull/index.vue'
+import SizeSelect from '@/components/SizeSelect/index.vue'
+import HeaderSearch from '@/components/HeaderSearch/index.vue'
 import Avatar from '@/assets/images/avatar.png'
 
 export default {
@@ -65,7 +65,7 @@ export default {
     Hamburger,
     Screenfull,
     SizeSelect,
-    Search,
+    HeaderSearch,
     Doc
   },
   data() {
@@ -147,6 +147,8 @@ export default {
 
   .right-menu {
     float: right;
+    display: flex;
+    align-items: center;
     height: 100%;
     line-height: 50px;
 
@@ -155,7 +157,9 @@ export default {
     }
 
     .right-menu-item {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       padding: 0 8px;
       height: 100%;
       font-size: 18px;
@@ -176,7 +180,8 @@ export default {
       margin-right: 30px;
 
       .avatar-wrapper {
-        margin-top: 5px;
+        display: flex;
+        align-items: center;
         position: relative;
 
         .user-avatar {

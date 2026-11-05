@@ -4,28 +4,28 @@
     <div class="head-container">
       <div v-if="crud.props.searchToggle">
         <!-- 搜索 -->
-        <el-input v-model="query.blurry" clearable placeholder="模糊搜索" style="width: 200px" class="filter-item" @keyup.enter.native="crud.toQuery" />
+        <el-input v-model="query.blurry" clearable placeholder="模糊搜索" style="width: 200px" class="filter-item" @keyup.enter="crud.toQuery" />
         <date-range-picker v-model="query.createTime" class="date-item" />
         <rrOperation />
       </div>
       <crudOperation :permission="permission">
-        <el-button
-          slot="right"
+        <template #right><el-button
+
           v-permission="['admin','database:add']"
           :disabled="!selectIndex"
           class="filter-item"
-          size="mini"
+
           type="warning"
-          icon="el-icon-upload"
+          icon="IconUpload"
           @click="execute"
         >执行脚本
-        </el-button>
+        </el-button></template>
       </crudOperation>
     </div>
     <!--表单组件-->
     <eForm ref="execute" :database-info="currentRow" />
-    <el-dialog append-to-body :close-on-click-modal="false" :before-close="crud.cancelCU" :visible.sync="crud.status.cu > 0" :title="crud.status.title" width="530px">
-      <el-form ref="form" :model="form" :rules="rules" size="small" label-width="100px">
+    <el-dialog append-to-body :close-on-click-modal="false" :before-close="crud.cancelCU" :model-value="crud.status.cu > 0" :title="crud.status.title" width="530px">
+      <el-form ref="form" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="连接名称" prop="name">
           <el-input v-model="form.name" style="width: 370px" />
         </el-form-item>
@@ -40,20 +40,20 @@
           <el-input v-model="form.pwd" type="password" style="width: 370px" />
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="text" @click="crud.cancelCU">取消</el-button>
+      <template #footer><div  class="dialog-footer">
+        <el-button type="primary" link @click="crud.cancelCU">取消</el-button>
         <el-button :loading="crud.status.cu === 2" type="primary" @click="crud.submitCU">确认</el-button>
-      </div>
+      </div></template>
     </el-dialog>
     <!--表格渲染-->
-    <el-table ref="table" v-loading="crud.loading" :data="crud.data" highlight-current-row stripe style="width: 100%" @selection-change="handleCurrentChange">
+    <el-table @expand-change="crud.expandChange" ref="table" v-loading="crud.loading" :data="crud.data" highlight-current-row stripe style="width: 100%" @selection-change="handleCurrentChange">
       <el-table-column type="selection" width="55" />
-      <el-table-column prop="name" width="130px" label="数据库名称" />
-      <el-table-column prop="jdbcUrl" label="连接地址" />
-      <el-table-column prop="userName" width="200px" label="用户名" />
-      <el-table-column prop="createTime" width="200px" label="创建日期" />
+      <el-table-column v-if="crud.columnVisible('name')" prop="name" width="130px" label="数据库名称" />
+      <el-table-column v-if="crud.columnVisible('jdbcUrl')" prop="jdbcUrl" label="连接地址" />
+      <el-table-column v-if="crud.columnVisible('userName')" prop="userName" width="200px" label="用户名" />
+      <el-table-column v-if="crud.columnVisible('createTime')" prop="createTime" width="200px" label="创建日期" />
       <el-table-column v-if="checkPer(['admin','database:edit','database:del'])" label="操作" width="150px" align="center">
-        <template slot-scope="scope">
+        <template #default="scope">
           <udOperation
             :data="scope.row"
             :permission="permission"
@@ -69,13 +69,13 @@
 <script>
 import crudDatabase from '@/api/maint/database'
 import { testDbConnect } from '@/api/maint/connect'
-import eForm from './execute'
+import eForm from './execute.vue'
 import CRUD, { presenter, header, form, crud } from '@crud/crud'
-import rrOperation from '@crud/RR.operation'
-import crudOperation from '@crud/CRUD.operation'
-import udOperation from '@crud/UD.operation'
-import pagination from '@crud/Pagination'
-import DateRangePicker from '@/components/DateRangePicker'
+import rrOperation from '@crud/RR.operation.vue'
+import crudOperation from '@crud/CRUD.operation.vue'
+import udOperation from '@crud/UD.operation.vue'
+import pagination from '@crud/Pagination.vue'
+import DateRangePicker from '@/components/DateRangePicker/index.vue'
 
 const defaultForm = { id: null, name: null, jdbcUrl: 'jdbc:mysql://', userName: null, pwd: null }
 export default {

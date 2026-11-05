@@ -1,5 +1,5 @@
 <template>
-  <el-form ref="form" :model="form" :rules="rules" style="margin-top: 6px;" size="small" label-width="100px">
+  <el-form ref="form" :model="form" :rules="rules" style="margin-top: 6px;" label-width="100px">
     <el-form-item label="appID" prop="appId">
       <el-input v-model="form.appId" style="width: 40%" />
       <span style="color: #C0C0C0;margin-left: 10px;">应用APPID,收款账号既是APPID对应支付宝账号</span>
@@ -25,7 +25,7 @@
       <span style="color: #C0C0C0;margin-left: 10px;">支付结果异步通知地址</span>
     </el-form-item>
     <el-form-item label="">
-      <el-button :loading="loading" size="medium" type="primary" @click="doSubmit">保存配置</el-button>
+      <el-button :loading="loading" size="default" type="primary" @click="doSubmit">保存配置</el-button>
     </el-form-item>
   </el-form>
 </template>

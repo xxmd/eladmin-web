@@ -1,4 +1,5 @@
 <template>
+  <teleport to="body">
   <div ref="rightPanel" :class="{show:show}" class="rightPanel-container">
     <div class="rightPanel-background" />
     <div class="rightPanel">
@@ -7,77 +8,21 @@
       </div>
     </div>
   </div>
+  </teleport>
 </template>
 
-<script>
-import { addClass, removeClass } from '@/utils'
-
-export default {
-  name: 'RightPanel',
-  props: {
-    clickNotClose: {
-      default: false,
-      type: Boolean
-    },
-    buttonTop: {
-      default: 250,
-      type: Number
-    }
-  },
-  computed: {
-    show: {
-      get() {
-        return this.$store.state.settings.showSettings
-      },
-      set(val) {
-        this.$store.dispatch('settings/changeSetting', {
-          key: 'showSettings',
-          value: val
-        })
-      }
-    },
-    theme() {
-      return this.$store.state.settings.theme
-    }
-  },
-  watch: {
-    show(value) {
-      if (value && !this.clickNotClose) {
-        this.addEventClick()
-      }
-      if (value) {
-        addClass(document.body, 'showRightPanel')
-      } else {
-        removeClass(document.body, 'showRightPanel')
-      }
-    }
-  },
-  mounted() {
-    this.insertToBody()
-    this.addEventClick()
-  },
-  beforeDestroy() {
-    const elx = this.$refs.rightPanel
-    elx.remove()
-  },
-  methods: {
-    addEventClick() {
-      window.addEventListener('click', this.closeSidebar)
-    },
-    closeSidebar(evt) {
-      const parent = evt.target.closest('.rightPanel')
-      if (!parent) {
-        this.show = false
-        window.removeEventListener('click', this.closeSidebar)
-      }
-    },
-    insertToBody() {
-      const elx = this.$refs.rightPanel
-      const body = document.querySelector('body')
-      body.insertBefore(elx, body.firstChild)
-    }
-  }
+<script setup lang="ts">
+import { computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useStore } from 'vuex'
+const props = withDefaults(defineProps<{ clickNotClose?: boolean; buttonTop?: number }>(), { clickNotClose: false, buttonTop: 250 })
+const store = useStore()
+const show = computed({ get: (): boolean => store.state.settings.showSettings, set: value => { void store.dispatch('settings/changeSetting', { key: 'showSettings', value }) } })
+function closeSidebar(event: MouseEvent) {
+  if (!props.clickNotClose && event.target instanceof Element && !event.target.closest('.rightPanel')) show.value = false
 }
+watch(show, value => document.body.classList.toggle('showRightPanel', value), { immediate: true })
+onMounted(() => window.addEventListener('click', closeSidebar))
+onBeforeUnmount(() => { window.removeEventListener('click', closeSidebar); document.body.classList.remove('showRightPanel') })
 </script>
 
 <style>

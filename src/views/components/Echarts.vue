@@ -67,17 +67,17 @@
 </template>
 
 <script>
-import RadarChart from '@/components/Echarts/RadarChart'
-import HeatMap from '@/components/Echarts/HeatMap'
-import Gauge from '@/components/Echarts/Gauge'
-import Rich from '@/components/Echarts/Rich'
-import ThemeRiver from '@/components/Echarts/ThemeRiver'
-import Sunburst from '@/components/Echarts/Sunburst'
-import Graph from '@/components/Echarts/Graph'
-import Sankey from '@/components/Echarts/Sankey'
-import Scatter from '@/components/Echarts/Scatter'
-import Category from '@/components/Echarts/Category'
-import Point from '@/components/Echarts/Point'
+import RadarChart from '@/components/Echarts/RadarChart.vue'
+import HeatMap from '@/components/Echarts/HeatMap.vue'
+import Gauge from '@/components/Echarts/Gauge.vue'
+import Rich from '@/components/Echarts/Rich.vue'
+import ThemeRiver from '@/components/Echarts/ThemeRiver.vue'
+import Sunburst from '@/components/Echarts/Sunburst.vue'
+import Graph from '@/components/Echarts/Graph.vue'
+import Sankey from '@/components/Echarts/Sankey.vue'
+import Scatter from '@/components/Echarts/Scatter.vue'
+import Category from '@/components/Echarts/Category.vue'
+import Point from '@/components/Echarts/Point.vue'
 
 export default {
   name: 'Echarts',
@@ -102,6 +102,8 @@ export default {
     padding: 18px 22px 22px 22px;
     background-color: rgb(240, 242, 245);
     .chart-wrapper {
+      width: 100%;
+      min-width: 0;
       background: #fff;
       padding: 16px 16px 0;
       margin-bottom: 32px;

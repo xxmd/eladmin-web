@@ -1,7 +1,7 @@
 @import 'variables';
 @import 'mixin';
 @import 'transition';
-@import 'element-ui';
+
 @import 'sidebar';
 @import 'btn';
 @import 'eladmin';
@@ -180,3 +180,5 @@ aside {
 .multiselect--active {
   z-index: 1000 !important;
 }
+
+.legacy-icon { width: 1em; height: 1em; display: inline-block; vertical-align: middle; }

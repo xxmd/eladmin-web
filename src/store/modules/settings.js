@@ -1,4 +1,4 @@
-import variables from '@/assets/styles/element-variables.scss'
+const variables = { theme: '#1890ff' }
 import defaultSettings from '@/settings'
 const { tagsView, fixedHeader, sidebarLogo, showFooter, footerTxt, caseNumber } = defaultSettings
 
@@ -15,7 +15,7 @@ const state = {
 
 const mutations = {
   CHANGE_SETTING: (state, { key, value }) => {
-    if (state.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(state, key)) {
       state[key] = value
     }
   }
@@ -33,4 +33,3 @@ export default {
   mutations,
   actions
 }
-

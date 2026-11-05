@@ -1,16 +1,16 @@
 <template>
-  <el-dialog append-to-body :close-on-click-modal="false" :visible.sync="dialog" title="系统还原" width="800px">
+  <el-dialog append-to-body :close-on-click-modal="false" v-model="dialog" title="系统还原" width="800px">
     <!--工具栏-->
     <div class="head-container">
       <date-range-picker v-model="query.createTime" class="date-item" />
-      <el-button class="filter-item" size="mini" type="success" icon="el-icon-search" @click="toQuery">搜索</el-button>
+      <el-button class="filter-item" type="success" icon="IconSearch" @click="toQuery">搜索</el-button>
     </div>
-    <el-form size="small" label-width="80px">
+    <el-form label-width="80px">
       <!--表格渲染-->
       <el-table v-loading="loading" :data="data" style="width: 100%" @row-click="showRow">
         <el-table-column width="30px">
-          <template slot-scope="scope">
-            <el-radio v-model="radio" :label="scope.$index" />
+          <template #default="scope">
+            <el-radio v-model="radio" :value="scope.$index" />
           </template>
         </el-table-column>
         <el-table-column prop="appName" label="应用名称" />
@@ -19,10 +19,10 @@
         <el-table-column prop="deployUser" label="部署人员" />
       </el-table>
     </el-form>
-    <div slot="footer" class="dialog-footer">
-      <el-button type="text" @click="cancel">取消</el-button>
+    <template #footer><div  class="dialog-footer">
+      <el-button type="primary" link @click="cancel">取消</el-button>
       <el-button v-permission="['admin','deploy:add']" :loading="submitLoading" type="primary" @click="doSubmit">确认</el-button>
-    </div>
+    </div></template>
     <!--分页组件-->
     <el-pagination
       :total="total"
@@ -38,7 +38,7 @@
 <script>
 import crud from '@/mixins/crud'
 import { reducte } from '@/api/maint/deployHistory'
-import DateRangePicker from '@/components/DateRangePicker'
+import DateRangePicker from '@/components/DateRangePicker/index.vue'
 export default {
   components: { DateRangePicker },
   mixins: [crud],

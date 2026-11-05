@@ -1,21 +1,21 @@
 <template>
-  <el-dialog :visible.sync="dialog" append-to-body title="执行日志" width="88%">
+  <el-dialog v-model="dialog" append-to-body title="执行日志" width="88%">
     <!-- 搜索 -->
     <div class="head-container">
-      <el-input v-model="query.jobName" clearable size="small" placeholder="输入任务名称搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="toQuery" />
+      <el-input v-model="query.jobName" clearable placeholder="输入任务名称搜索" style="width: 200px;" class="filter-item" @keyup.enter="toQuery" />
       <date-range-picker v-model="query.createTime" class="date-item" />
-      <el-select v-model="query.isSuccess" placeholder="日志状态" clearable size="small" class="filter-item" style="width: 110px" @change="toQuery">
+      <el-select v-model="query.isSuccess" placeholder="日志状态" clearable class="filter-item" style="width: 110px" @change="toQuery">
         <el-option v-for="item in enabledTypeOptions" :key="item.key" :label="item.display_name" :value="item.key" />
       </el-select>
-      <el-button class="filter-item" size="mini" type="success" icon="el-icon-search" @click="toQuery">搜索</el-button>
+      <el-button class="filter-item" type="success" icon="IconSearch" @click="toQuery">搜索</el-button>
       <!-- 导出 -->
       <div style="display: inline-block;">
         <el-button
           :loading="downloadLoading"
-          size="mini"
+
           class="filter-item"
           type="warning"
-          icon="el-icon-download"
+          icon="IconDownload"
           @click="downloadMethod"
         >导出</el-button>
       </div>
@@ -28,19 +28,19 @@
       <el-table-column :show-overflow-tooltip="true" prop="params" width="120px" label="参数" />
       <el-table-column :show-overflow-tooltip="true" prop="cronExpression" label="cron表达式" />
       <el-table-column prop="createTime" label="异常详情" width="110px">
-        <template slot-scope="scope">
-          <el-button v-show="scope.row.exceptionDetail" size="mini" type="text" @click="info(scope.row.exceptionDetail)">查看详情</el-button>
+        <template #default="scope">
+          <el-button v-show="scope.row.exceptionDetail" type="primary" link @click="info(scope.row.exceptionDetail)">查看详情</el-button>
         </template>
       </el-table-column>
       <el-table-column :show-overflow-tooltip="true" align="center" prop="time" width="100px" label="耗时(毫秒)" />
       <el-table-column align="center" prop="isSuccess" width="80px" label="状态">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag :type="scope.row.isSuccess ? 'success' : 'danger'">{{ scope.row.isSuccess ? '成功' : '失败' }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column :show-overflow-tooltip="true" prop="createTime" label="创建日期" />
     </el-table>
-    <el-dialog :visible.sync="errorDialog" append-to-body title="异常详情" width="85%">
+    <el-dialog v-model="errorDialog" append-to-body title="异常详情" width="85%">
       <pre>{{ errorInfo }}</pre>
     </el-dialog>
     <!--分页组件-->
@@ -58,7 +58,7 @@
 
 <script>
 import crud from '@/mixins/crud'
-import DateRangePicker from '@/components/DateRangePicker'
+import DateRangePicker from '@/components/DateRangePicker/index.vue'
 export default {
   components: { DateRangePicker },
   mixins: [crud],
@@ -98,7 +98,7 @@ export default {
     color: #444;
     background: #ffffff !important;
   }
- ::v-deep .el-dialog__body{
+ :deep(.el-dialog__body) {
     padding: 0 20px 10px 20px !important;
   }
 </style>

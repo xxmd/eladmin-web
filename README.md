@@ -28,42 +28,34 @@ ELADMIN 前端源码
 
 使用优惠码: `BWHCGLUKKB`，可获得 6.81% 的折扣， [查看介绍](https://bwhstock.in/)
 
-#### Build Setup
-**推荐 node 版本：12-16**
-``` bash
-# 配置镜像加速
-https://www.ydyno.com/archives/1219.html
+#### 开发与构建（dev-ts）
 
-# 安装依赖
-npm install
+当前使用 Vite 8、Vue 3.5、Element Plus 2、Vue Router 4、Vuex 4 和 TypeScript 5.9。
+需要 Node.js 22.12 或更高版本。依赖版本由 `package-lock.json` 固定。
 
-# 启动服务 localhost:8013
-npm run dev
-
-# 构建生产环境
+```bash
+npm ci
+npm run dev        # http://127.0.0.1:8013
+npm run typecheck  # 检查已迁移的 TS / Vue TS 模块
+npm run lint
+npm run test:unit
 npm run build:prod
+npm run preview
+npm run test:e2e   # 先构建，再用 Playwright 检查生产产物
 ```
 
-#### 常见问题
+Windows 浏览器测试默认使用本机 Edge；其他平台先运行 `npx playwright install chromium`。
+测试使用模拟接口，不会修改真实后端数据。
 
-1、linux 系统在安装依赖的时候会出现 node-sass 无法安装的问题
+环境变量已从 `VUE_APP_*` 改为 `VITE_*`：
 
-解决方案：
-```
-1. 单独安装：npm install --unsafe-perm node-sass 
-2. 直接使用：npm install --unsafe-perm
-```
+- `VITE_BASE_API`：后端 HTTP 地址。开发时 `/api`、`/auth` 等请求由 Vite 代理。
+- `VITE_WS_API`：WebSocket 地址，`/` 表示使用当前站点的 ws/wss 地址。
+- 生产环境可在 `.env.production.local` 设置这两个变量。原有生产地址保留在 `.env.production`。
+- 使用同域反向代理时，两者均设为 `/`，并在 Nginx 配置 `/api`、`/auth`、文件和 WebSocket 的转发。
+- Router 使用 history 模式，静态站点需配置 `try_files $uri $uri/ /index.html`。
 
-2、加速node-sass安装
-
-https://izlzl.com/archives/1219.html
-
-3、出现 No module named 'distutils'
-
-```
-需要安装 python，安装 pip 或者 pip3
-然后安装 pip install distutils / pip3 install distutils
-```
+详细迁移范围与回归要求见 [迁移记录](docs/MIGRATION.md)。
 
 #### 特别鸣谢
 

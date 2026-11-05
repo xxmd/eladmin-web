@@ -9,9 +9,9 @@
         <div class="grid">
           <div v-for="item of svgIcons" :key="item" @click="handleClipboard(generateIconCode(item),$event)">
             <el-tooltip placement="top">
-              <div slot="content">
+              <template #content><div >
                 {{ generateIconCode(item) }}
-              </div>
+              </div></template>
               <div class="icon-item">
                 <svg-icon :icon-class="item" class-name="disabled" />
                 <span>{{ item }}</span>
@@ -20,15 +20,15 @@
           </div>
         </div>
       </el-tab-pane>
-      <el-tab-pane label="Element-UI Icons">
+      <el-tab-pane label="Element Plus Icons">
         <div class="grid">
           <div v-for="item of elementIcons" :key="item" @click="handleClipboard(generateElementIconCode(item),$event)">
             <el-tooltip placement="top">
-              <div slot="content">
+              <template #content><div >
                 {{ generateElementIconCode(item) }}
-              </div>
+              </div></template>
               <div class="icon-item">
-                <i :class="'el-icon-' + item" />
+                <component :is="'Icon' + item" class="legacy-icon" />
                 <span>{{ item }}</span>
               </div>
             </el-tooltip>
@@ -56,7 +56,7 @@ export default {
       return `<svg-icon icon-class="${symbol}" />`
     },
     generateElementIconCode(symbol) {
-      return `<i class="el-icon-${symbol}" />`
+      return `<el-icon><${symbol} /></el-icon>`
     },
     handleClipboard(text, event) {
       clipboard(text, event)

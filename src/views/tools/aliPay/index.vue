@@ -31,8 +31,8 @@ if (/(Android)/i.test(navigator.userAgent)){     // 判断是否为Android手机
 </template>
 
 <script>
-import Config from './config'
-import ToPay from './toPay'
+import Config from './config.vue'
+import ToPay from './toPay.vue'
 export default {
   name: 'AliPay',
   components: { Config, ToPay },

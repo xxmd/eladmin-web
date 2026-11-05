@@ -3,7 +3,7 @@
     append-to-body
     :close-on-click-modal="false"
     :before-close="crud.cancelCU"
-    :visible="crud.status.cu > 0"
+    :model-value="crud.status.cu > 0"
     :title="crud.status.title"
     width="500px"
   >
@@ -11,7 +11,7 @@
       ref="form"
       :model="form"
       :rules="rules"
-      size="small"
+
       label-width="80px"
     >
       <el-form-item
@@ -44,18 +44,18 @@
           v-for="item in jobStatus"
           :key="item.id"
           v-model="form.enabled"
-          :label="item.value === 'true'"
+          :value="item.value === 'true'"
         >
           {{ item.label }}
         </el-radio>
       </el-form-item>
     </el-form>
-    <div
-      slot="footer"
+    <template #footer><div
+
       class="dialog-footer"
     >
       <el-button
-        type="text"
+        type="primary" link
         @click="crud.cancelCU"
       >
         取消
@@ -67,7 +67,7 @@
       >
         确认
       </el-button>
-    </div>
+    </div></template>
   </el-dialog>
 </template>
 
@@ -104,7 +104,7 @@ export default {
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>
- ::v-deep .el-input-number .el-input__inner {
+ :deep(.el-input-number .el-input__inner) {
     text-align: left;
   }
 </style>

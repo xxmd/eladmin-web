@@ -169,14 +169,14 @@ export default {
       this.delLoading = true
       this.crudMethod.del(id).then(() => {
         this.delLoading = false
-        this.$refs[id].doClose()
+        this.$refs[id].hide()
         this.dleChangePage()
         this.delSuccessNotify()
         this.afterDelMethod()
         this.init()
       }).catch(() => {
         this.delLoading = false
-        this.$refs[id].doClose()
+        this.$refs[id].hide()
       })
     },
     afterDelMethod() {},
@@ -197,7 +197,7 @@ export default {
      */
     delAllMethod() {
       this.delAllLoading = true
-      const data = this.$refs.table.selection
+      const data = this.$refs.table.getSelectionRows()
       const ids = []
       for (let i = 0; i < data.length; i++) {
         ids.push(data[i].id)

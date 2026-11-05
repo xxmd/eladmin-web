@@ -4,19 +4,19 @@
     <div class="head-container">
       <div v-if="crud.props.searchToggle">
         <!-- 搜索 -->
-        <el-input v-model="query.appName" clearable placeholder="输入应用名称查询" style="width: 200px" class="filter-item" @keyup.enter.native="crud.toQuery" />
+        <el-input v-model="query.appName" clearable placeholder="输入应用名称查询" style="width: 200px" class="filter-item" @keyup.enter="crud.toQuery" />
         <date-range-picker v-model="query.createTime" class="date-item" />
         <rrOperation />
       </div>
       <crudOperation :permission="permission">
-        <template slot="right">
+        <template #right>
           <el-button
             v-permission="['admin','deploy:add']"
             :disabled="!selectIndex"
             class="filter-item"
-            size="mini"
+
             type="primary"
-            icon="el-icon-upload"
+            icon="IconUpload"
             @click="sysRestore"
           >系统还原
           </el-button>
@@ -24,9 +24,9 @@
             v-permission="['admin','deploy:add']"
             :disabled="!selectIndex"
             class="filter-item"
-            size="mini"
+
             type="primary"
-            icon="el-icon-upload"
+            icon="IconUpload"
             @click="serverStatus"
           >状态查询
           </el-button>
@@ -34,9 +34,9 @@
             v-permission="['admin','deploy:add']"
             :disabled="!selectIndex"
             class="filter-item"
-            size="mini"
+
             type="success"
-            icon="el-icon-upload"
+            icon="IconUpload"
             @click="startServer"
           >启动
           </el-button>
@@ -44,9 +44,9 @@
             v-permission="['admin','deploy:add']"
             :disabled="!selectIndex"
             class="filter-item"
-            size="mini"
+
             type="danger"
-            icon="el-icon-upload"
+            icon="IconUpload"
             @click="stopServer"
           >停止
           </el-button>
@@ -54,9 +54,9 @@
             v-permission="['admin','deploy:add']"
             :disabled="!selectIndex"
             class="filter-item"
-            size="mini"
+
             type="warning"
-            icon="el-icon-upload"
+            icon="IconUpload"
             @click="deploy"
           >一键部署
           </el-button>
@@ -64,8 +64,8 @@
       </crudOperation>
     </div>
     <!--表单组件-->
-    <el-dialog append-to-body :close-on-click-modal="false" :before-close="crud.cancelCU" :visible.sync="crud.status.cu > 0" :title="crud.status.title" width="500px">
-      <el-form ref="form" :model="form" :rules="rules" size="small" label-width="80px">
+    <el-dialog append-to-body :close-on-click-modal="false" :before-close="crud.cancelCU" :model-value="crud.status.cu > 0" :title="crud.status.title" width="500px">
+      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="应用" prop="app.id">
           <el-select v-model.number="form.app.id" placeholder="请选择" style="width: 370px">
             <el-option v-for="item in apps" :key="item.id" :label="item.name" :value="item.id" />
@@ -77,22 +77,22 @@
           </el-select>
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="text" @click="crud.cancelCU">取消</el-button>
+      <template #footer><div  class="dialog-footer">
+        <el-button type="primary" link @click="crud.cancelCU">取消</el-button>
         <el-button :loading="crud.status.cu === 2" type="primary" @click="crud.submitCU">确认</el-button>
-      </div>
+      </div></template>
     </el-dialog>
     <!--统还原组件-->
     <fForm ref="sysRestore" :key="times" :app-name="appName" />
     <dForm ref="deploy" />
     <!--表格渲染-->
-    <el-table ref="table" v-loading="crud.loading" :data="crud.data" highlight-current-row stripe style="width: 100%" @selection-change="handleCurrentChange">
+    <el-table @expand-change="crud.expandChange" ref="table" v-loading="crud.loading" :data="crud.data" highlight-current-row stripe style="width: 100%" @selection-change="handleCurrentChange">
       <el-table-column type="selection" width="55" />
-      <el-table-column prop="app.name" label="应用名称" />
-      <el-table-column prop="servers" label="服务器列表" />
-      <el-table-column prop="createTime" label="部署日期" />
+      <el-table-column v-if="crud.columnVisible('app.name')" prop="app.name" label="应用名称" />
+      <el-table-column v-if="crud.columnVisible('servers')" prop="servers" label="服务器列表" />
+      <el-table-column v-if="crud.columnVisible('createTime')" prop="createTime" label="部署日期" />
       <el-table-column v-if="checkPer(['admin','deploy:edit','deploy:del'])" label="操作" width="150px" align="center">
-        <template slot-scope="scope">
+        <template #default="scope">
           <udOperation
             :data="scope.row"
             :permission="permission"
@@ -107,14 +107,14 @@
 
 <script>
 import crudDeploy from '@/api/maint/deploy'
-import dForm from './deploy'
-import fForm from './sysRestore'
+import dForm from './deploy.vue'
+import fForm from './sysRestore.vue'
 import CRUD, { presenter, header, form, crud } from '@crud/crud'
-import rrOperation from '@crud/RR.operation'
-import crudOperation from '@crud/CRUD.operation'
-import udOperation from '@crud/UD.operation'
-import pagination from '@crud/Pagination'
-import DateRangePicker from '@/components/DateRangePicker'
+import rrOperation from '@crud/RR.operation.vue'
+import crudOperation from '@crud/CRUD.operation.vue'
+import udOperation from '@crud/UD.operation.vue'
+import pagination from '@crud/Pagination.vue'
+import DateRangePicker from '@/components/DateRangePicker/index.vue'
 
 const defaultForm = { id: null, app: { id: null }, deploys: [] }
 export default {

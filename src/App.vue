@@ -1,11 +1,14 @@
 <template>
-  <div id="app">
+  <el-config-provider :size="size">
     <router-view />
-  </div>
+  </el-config-provider>
 </template>
-
-<script>
-export default {
-  name: 'App'
-}
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useStore } from 'vuex'
+const store = useStore()
+const size = computed(() => {
+  const value: string = store.getters.size
+  return value === 'large' ? 'large' : value === 'default' || value === 'medium' ? 'default' : 'small'
+})
 </script>

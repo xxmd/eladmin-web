@@ -1,6 +1,6 @@
 import { initData, download } from '@/api/data'
 import { parseTime, downloadFile } from '@/utils/index'
-import Vue from 'vue'
+import { reactive, markRaw } from 'vue'
 
 /**
  * CRUD配置
@@ -51,7 +51,7 @@ function CRUD(options) {
       reset: true
     },
     // 自定义一些扩展属性
-    props: {},
+    props: { hiddenColumns: [] },
     // 在主页准备
     queryOnPresenterCreated: true,
     // 调试开关
@@ -134,8 +134,8 @@ function CRUD(options) {
         initData(crud.url, crud.getQueryParams()).then(data => {
           const table = crud.getTable()
           if (table && table.lazy) { // 懒加载子节点数据，清掉已加载的数据
-            table.store.states.treeData = {}
-            table.store.states.lazyTreeNodeMap = {}
+            table.store.states.treeData.value = {}
+            table.store.states.lazyTreeNodeMap.value = {}
           }
           crud.page.total = data.totalElements
           crud.data = data.content
@@ -223,8 +223,8 @@ function CRUD(options) {
         callVmHook(crud, CRUD.HOOK.afterEditCancel, crud.form)
       }
       // 清除表单验证
-      if (crud.findVM('form').$refs['form']) {
-        crud.findVM('form').$refs['form'].clearValidate()
+      if (crud.findVM('form')?.$refs['form']) {
+        crud.findVM('form')?.$refs['form'].clearValidate()
       }
     },
     /**
@@ -234,7 +234,7 @@ function CRUD(options) {
       if (!callVmHook(crud, CRUD.HOOK.beforeValidateCU)) {
         return
       }
-      crud.findVM('form').$refs['form'].validate(valid => {
+      crud.findVM('form')?.$refs['form'].validate(valid => {
         if (!valid) {
           return
         }
@@ -404,15 +404,15 @@ function CRUD(options) {
       const form = data || (typeof crud.defaultForm === 'object' ? JSON.parse(JSON.stringify(crud.defaultForm)) : crud.defaultForm.apply(crud.findVM('form')))
       const crudFrom = crud.form
       for (const key in form) {
-        if (crudFrom.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(crudFrom, key)) {
           crudFrom[key] = form[key]
         } else {
-          Vue.set(crudFrom, key, form[key])
+          crudFrom[key] = form[key]
         }
       }
       // add by ghl 2020-10-04  页面重复添加信息时，下拉框的校验会存在，需要找工取消
-      if (crud.findVM('form').$refs['form']) {
-        crud.findVM('form').$refs['form'].clearValidate()
+      if (crud.findVM('form')?.$refs['form']) {
+        crud.findVM('form')?.$refs['form'].clearValidate()
       }
     },
     /**
@@ -439,7 +439,7 @@ function CRUD(options) {
      * @param {Number | String} id 数据项id
      */
     getDataStatus(id) {
-      return crud.dataStatus[id]
+      return crud.dataStatus[id] || (crud.dataStatus[id] = { delete: 0, edit: 0 })
     },
     /**
      * 用于树形表格多选, 选中所有
@@ -493,7 +493,7 @@ function CRUD(options) {
       }
     },
     findVM(type) {
-      return crud.vms.find(vm => vm && vm.type === type).vm
+      return crud.vms.find(vm => vm && vm.type === type)?.vm
     },
     notify(title, type = CRUD.NOTIFICATION_TYPE.INFO) {
       crud.vms[0].vm.$notify({
@@ -502,8 +502,11 @@ function CRUD(options) {
         duration: 2500
       })
     },
+    columnVisible(property) {
+      return !(crud.props.hiddenColumns || []).includes(property)
+    },
     updateProp(name, value) {
-      Vue.set(crud.props, name, value)
+      crud.props[name] = value
     },
     getDataId(data) {
       return data[this.idField]
@@ -514,30 +517,15 @@ function CRUD(options) {
     attchTable() {
       const table = this.getTable()
       this.updateProp('table', table)
-      const that = this
-      table.$on('expand-change', (row, expanded) => {
-        if (!expanded) {
-          return
-        }
-        const lazyTreeNodeMap = table.store.states.lazyTreeNodeMap
-        row.children = lazyTreeNodeMap[crud.getDataId(row)]
-        if (row.children) {
-          row.children.forEach(ele => {
-            const id = crud.getDataId(ele)
-            if (that.dataStatus[id] === undefined) {
-              that.dataStatus[id] = {
-                delete: 0,
-                edit: 0
-              }
-            }
-          })
-        }
-      })
+    },
+    expandChange(row, expanded) {
+      if (!expanded) return
+      const table = crud.getTable()
+      row.children = table.store.states.lazyTreeNodeMap.value[crud.getDataId(row)] || row.children
+      row.children?.forEach(child => crud.getDataStatus(crud.getDataId(child)))
     }
   }
-  const crud = Object.assign({}, data)
-  // 可观测化
-  Vue.observable(crud)
+  const crud = reactive(Object.assign({}, data))
   // 附加方法
   Object.assign(crud, methods)
   // 记录初始默认的查询参数，后续重置查询时使用
@@ -554,7 +542,7 @@ function CRUD(options) {
     registerVM(type, vm, index = -1) {
       const vmObj = {
         type,
-        vm: vm
+        vm: markRaw(vm)
       }
       if (index < 0) {
         this.vms.push(vmObj)
@@ -588,7 +576,7 @@ function CRUD(options) {
     }
   })
   // 冻结处理，需要扩展数据的话，使用crud.updateProp(name, value)，以crud.props.name形式访问，这个是响应式的，可以做数据绑定
-  Object.freeze(crud)
+  // Vue 3 reactive proxies must remain extensible.
   return crud
 }
 
@@ -607,10 +595,10 @@ function callVmHook(crud, hook) {
   const vmSet = new Set()
   crud.vms.forEach(vm => vm && vmSet.add(vm.vm))
   vmSet.forEach(vm => {
-    if (vm[hook]) {
+    if (hook in vm && vm[hook]) {
       ret = vm[hook].apply(vm, nargs) !== false && ret
     }
-    if (tagHook && vm[tagHook]) {
+    if (tagHook && tagHook in vm && vm[tagHook]) {
       ret = vm[tagHook].apply(vm, nargs) !== false && ret
     }
   })
@@ -622,7 +610,7 @@ function mergeOptions(src, opts) {
     ...src
   }
   for (const key in src) {
-    if (opts.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(opts, key)) {
       optsRet[key] = opts[key]
     }
   }
@@ -673,7 +661,7 @@ function presenter(crud) {
         this.$crud[ele.tag] = ele
         ele.registerVM('presenter', this, 0)
       })
-      this.crud = this.$crud['defalut'] || cruds[0]
+      this.crud = this.$crud['default'] || cruds[0]
     },
     methods: {
       parseTime
@@ -685,7 +673,7 @@ function presenter(crud) {
         }
       }
     },
-    destroyed() {
+    unmounted() {
       for (const k in this.$crud) {
         this.$crud[k].unregisterVM('presenter', this)
       }
@@ -714,7 +702,7 @@ function header() {
       this.crud = lookupCrud(this)
       this.crud.registerVM('header', this, 1)
     },
-    destroyed() {
+    unmounted() {
       this.crud.unregisterVM('header', this)
     }
   }
@@ -735,7 +723,7 @@ function pagination() {
       this.crud = lookupCrud(this)
       this.crud.registerVM('pagination', this, 2)
     },
-    destroyed() {
+    unmounted() {
       this.crud.unregisterVM('pagination', this)
     }
   }
@@ -760,7 +748,7 @@ function form(defaultForm) {
       this.crud.defaultForm = defaultForm
       this.crud.resetForm()
     },
-    destroyed() {
+    unmounted() {
       this.crud.unregisterVM('form', this)
     }
   }
@@ -784,7 +772,7 @@ function crud(options = {}) {
       this.crud = lookupCrud(this)
       this.crud.registerVM(options.type, this)
     },
-    destroyed() {
+    unmounted() {
       this.crud.unregisterVM(options.type, this)
     }
   }

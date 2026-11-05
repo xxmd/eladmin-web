@@ -1,6 +1,6 @@
 <template>
-  <el-dialog append-to-body :close-on-click-modal="false" :visible.sync="dialog" title="执行脚本" width="400px">
-    <el-form ref="form" :rules="rules" size="small">
+  <el-dialog append-to-body :close-on-click-modal="false" v-model="dialog" title="执行脚本" width="400px">
+    <el-form ref="form" :rules="rules">
       <el-upload
         :action="databaseUploadApi"
         :data="databaseInfo"
@@ -10,17 +10,17 @@
         class="upload-demo"
         drag
       >
-        <i class="el-icon-upload" />
+        <IconUpload class="legacy-icon " />
         <div class="el-upload__text">
           将文件拖到此处，或
           <em>点击上传</em>
         </div>
-        <div slot="tip" class="el-upload__tip">上传后，系统会自动执行SQL脚本</div>
+        <template #tip><div  class="el-upload__tip">上传后，系统会自动执行SQL脚本</div></template>
       </el-upload>
     </el-form>
-    <div slot="footer" class="dialog-footer">
+    <template #footer><div  class="dialog-footer">
       <el-button type="primary" @click="cancel">关闭</el-button>
-    </div>
+    </div></template>
   </el-dialog>
 </template>
 

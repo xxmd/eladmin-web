@@ -1,5 +1,5 @@
 <template>
-  <el-scrollbar ref="scrollContainer" :vertical="false" class="scroll-container" @wheel.native.prevent="handleScroll">
+  <el-scrollbar ref="scrollContainer" :vertical="false" class="scroll-container" @wheel.prevent="handleScroll">
     <slot />
   </el-scrollbar>
 </template>
@@ -16,7 +16,7 @@ export default {
   },
   computed: {
     scrollWrapper() {
-      return this.$refs.scrollContainer.$refs.wrap
+      return this.$refs.scrollContainer.wrapRef
     }
   },
   methods: {
@@ -73,7 +73,7 @@ export default {
   position: relative;
   overflow: hidden;
   width: 100%;
- ::v-deep {
+ :deep(*) {
     .el-scrollbar__bar {
       bottom: 0px;
     }
