@@ -14,6 +14,7 @@ import dict from './components/Dict'
 import checkPer from './utils/permission'
 import permission from './components/Permission'
 import SvgIcon from './components/SvgIcon/index.vue'
+import LegacyEditIcon from './components/LegacyEditIcon/index.vue'
 import './assets/icons'
 import './router'
 
@@ -25,5 +26,5 @@ app.use(checkPer)
 app.use(permission)
 app.use(dict)
 app.component('SvgIcon', SvgIcon)
-for (const [name, component] of Object.entries(icons)) app.component(`Icon${name}`, component)
+for (const [name, component] of Object.entries(icons)) app.component(`Icon${name}`, name === 'Edit' ? LegacyEditIcon : component)
 app.mount('#app')
