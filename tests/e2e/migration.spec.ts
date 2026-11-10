@@ -50,6 +50,61 @@ async function mockApi(page: Page, roles = ['admin'], invalidMenu = false) {
   })
 }
 
+test('classic edit controls, menu values and department labels match the legacy UI', async ({ page, context }) => {
+  await mockApi(page)
+  const menu = { id: 10, title: '测试目录', type: 0, iFrame: false, hidden: false, cache: false, path: 'folder', menuSort: 1, pid: null }
+  const childMenu = { ...menu, id: 11, title: '测试菜单', type: 1, hidden: true, cache: true, path: 'inside' }
+  const parent = { id: 1, name: '研发部', label: '研发部', leaf: true }
+  const dept = { id: 2, name: '测试部门', enabled: true, deptSort: 6, pid: 1, hasChildren: false }
+  await page.route(/\/api\/(?:menus|dept)(?:\/superior)?(?:\?|$)/, async route => {
+    const { pathname } = new URL(route.request().url())
+    const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET, POST, PUT' }
+    if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers })
+    const fixtures: Record<string, unknown> = {
+      '/api/menus': { content: [menu, childMenu], totalElements: 2 },
+      '/api/menus/superior': [],
+      '/api/dept': { content: [dept], totalElements: 1 },
+      '/api/dept/superior': { content: [parent], totalElements: 1 }
+    }
+    await route.fulfill({ json: fixtures[pathname], headers })
+  })
+  await context.addCookies([{ name: 'ELADMIN-TOEKN', value: 'test-token', domain: '127.0.0.1', path: '/' }])
+  for (const view of ['user', 'role', 'job', 'menu', 'dept']) {
+    await page.goto(`/system/${view}`)
+    const edit = page.locator('.el-table .classic-edit-button').first()
+    await expect(edit.locator('svg path')).toHaveAttribute('d', /^M199 223/)
+    await expect(edit).toHaveCSS('height', '28px')
+  }
+
+  const dialog = page.getByRole('dialog')
+  const item = (label: string) => dialog.locator('.el-form-item').filter({ hasText: label })
+  await page.locator('.el-table .classic-edit-button').first().click()
+  for (const label of ['部门名称', '状态', '上级部门']) {
+    await expect(item(label).locator('.el-form-item__label')).toHaveCSS('font-weight', '700')
+  }
+  await expect(item('状态').getByRole('radio', { name: '启用' })).toBeChecked()
+  await expect(item('上级部门').getByText('研发部', { exact: true })).toBeVisible()
+
+  await page.goto('/system/menu')
+  await page.getByRole('row').filter({ hasText: '测试目录' }).locator('.classic-edit-button').click()
+  await expect(dialog.getByRole('radio', { name: '目录', exact: true })).toBeChecked()
+  await expect(item('外链菜单').getByRole('radio', { name: '否', exact: true })).toBeChecked()
+  await expect(item('菜单可见').getByRole('radio', { name: '是', exact: true })).toBeChecked()
+  const routeTop = await item('路由地址').evaluate(element => (element as HTMLElement).offsetTop)
+  const sortTop = await item('菜单排序').evaluate(element => (element as HTMLElement).offsetTop)
+  expect(routeTop).toBe(sortTop)
+  await dialog.getByRole('button', { name: '取消', exact: true }).click()
+
+  await page.getByRole('row').filter({ hasText: '测试菜单' }).locator('.classic-edit-button').click()
+  await expect(dialog.getByRole('radio', { name: '菜单', exact: true })).toBeChecked()
+  await expect(item('菜单缓存').getByRole('radio', { name: '是', exact: true })).toBeChecked()
+  await expect(item('菜单可见').getByRole('radio', { name: '否', exact: true })).toBeChecked()
+  await item('菜单可见').getByText('是', { exact: true }).click()
+  const update = page.waitForRequest(request => request.url().endsWith('/api/menus') && request.method() === 'PUT')
+  await dialog.getByRole('button', { name: '确认', exact: true }).click()
+  expect((await update).postDataJSON()).toMatchObject({ type: 1, iFrame: false, cache: true, hidden: false })
+})
+
 test('login, dynamic routes, CRUD dialog and legacy pages render on Vue 3', async ({ page, context }) => {
   const errors: string[] = []
   page.on('pageerror', error => { errors.push(error.message); console.error(error.stack) })

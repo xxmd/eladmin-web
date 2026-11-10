@@ -35,7 +35,9 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item label="状态" prop="enabled">
-          <el-radio v-for="item in dict.dept_status" :key="item.id" v-model="form.enabled" :value="item.value">{{ item.label }}</el-radio>
+          <el-radio-group v-model="form.enabled">
+            <el-radio v-for="item in dict.dept_status" :key="item.id" :value="item.value">{{ item.label }}</el-radio>
+          </el-radio-group>
         </el-form-item>
         <el-form-item v-if="form.isTop === '0'" style="margin-bottom: 0;" label="上级部门" prop="pid">
           <treeselect

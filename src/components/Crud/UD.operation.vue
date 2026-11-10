@@ -1,6 +1,6 @@
 <template>
   <div class="crud-row-actions">
-    <el-button v-permission="permission.edit" :loading="crud.status.cu === 2" :disabled="disabledEdit" type="primary" icon="IconEdit" @click.stop="crud.toEdit(data)" />
+    <el-button v-permission="permission.edit" :loading="crud.status.cu === 2" :disabled="disabledEdit" type="primary" class="classic-edit-button" icon="IconEdit" @click.stop="crud.toEdit(data)" />
     <el-popover v-model:visible="pop" v-if="!permission.del || checkPer(permission.del)" placement="top" width="180" :show-arrow="true" @show="onPopoverShow" @hide="onPopoverHide">
       <p>{{ msg }}</p>
       <div style="text-align: right; margin: 0">

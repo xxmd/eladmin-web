@@ -17,7 +17,7 @@
       <el-button
         v-if="crud.optShow.edit"
         v-permission="permission.edit"
-        class="filter-item"
+        class="filter-item classic-edit-button"
 
         type="success"
         icon="IconEdit"

@@ -12,7 +12,7 @@
       </div>
       <div class="crud-opts">
         <el-button v-permission="['admin', 'job:add']" type="primary" icon="IconPlus" @click="openAdd">新增</el-button>
-        <el-button v-permission="['admin', 'job:edit']" type="success" icon="IconEdit" :disabled="selection.length !== 1" @click="selection[0] && openEdit(selection[0])">修改</el-button>
+        <el-button v-permission="['admin', 'job:edit']" type="success" class="classic-edit-button" icon="IconEdit" :disabled="selection.length !== 1" @click="selection[0] && openEdit(selection[0])">修改</el-button>
         <el-button v-permission="['admin', 'job:del']" type="danger" icon="IconDelete" :disabled="!selection.length" @click="removeJobs(selection)">删除</el-button>
         <el-button type="warning" icon="IconDownload" :loading="exporting" :disabled="!rows.length" @click="exportJobs">导出</el-button>
         <el-button-group style="margin-left: auto">
@@ -37,7 +37,7 @@
       </template>
       <el-table-column v-if="canEdit || canDelete" label="操作" align="center" fixed="right">
         <template #default="scope">
-          <el-button v-if="canEdit" type="primary" icon="IconEdit" aria-label="编辑岗位" @click="openEdit(scope.row)" />
+          <el-button v-if="canEdit" type="primary" class="classic-edit-button" icon="IconEdit" aria-label="编辑岗位" @click="openEdit(scope.row)" />
           <el-button v-if="canDelete" type="danger" icon="IconDelete" aria-label="删除岗位" @click="removeJobs([scope.row])" />
         </template>
       </el-table-column>

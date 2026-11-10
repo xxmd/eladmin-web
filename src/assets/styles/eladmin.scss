@@ -1,3 +1,17 @@
+.el-button.classic-edit-button {
+  height: 28px;
+  padding: 7px 15px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 400;
+  --el-button-hover-bg-color: color-mix(in srgb, var(--el-button-bg-color) 80%, white);
+  --el-button-hover-border-color: var(--el-button-hover-bg-color);
+  --el-button-active-bg-color: color-mix(in srgb, var(--el-button-bg-color) 90%, black);
+  --el-button-active-border-color: var(--el-button-active-bg-color);
+  --el-button-disabled-bg-color: color-mix(in srgb, var(--el-button-bg-color) 50%, white);
+  --el-button-disabled-border-color: var(--el-button-disabled-bg-color);
+}
+
 .head-container {
   padding-bottom: 10px;
   .filter-item {
