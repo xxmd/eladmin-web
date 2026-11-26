@@ -71,9 +71,15 @@ test('classic edit controls, menu values and department labels match the legacy 
   await context.addCookies([{ name: 'ELADMIN-TOEKN', value: 'test-token', domain: '127.0.0.1', path: '/' }])
   for (const view of ['user', 'role', 'job', 'menu', 'dept']) {
     await page.goto(`/system/${view}`)
+    const add = page.getByRole('button', { name: '新增', exact: true })
+    const toolbarEdit = page.getByRole('button', { name: '修改', exact: true })
     const edit = page.locator('.el-table .classic-edit-button').first()
+    const remove = edit.locator('xpath=ancestor::td[1]').locator('.el-button--danger')
     await expect(edit.locator('svg path')).toHaveAttribute('d', /^M199 223/)
-    await expect(edit).toHaveCSS('height', '28px')
+    for (const property of ['width', 'height']) {
+      await expect(toolbarEdit).toHaveCSS(property, await add.evaluate((button, css) => getComputedStyle(button).getPropertyValue(css), property))
+      await expect(edit).toHaveCSS(property, await remove.evaluate((button, css) => getComputedStyle(button).getPropertyValue(css), property))
+    }
   }
 
   const dialog = page.getByRole('dialog')
