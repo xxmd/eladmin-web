@@ -22,4 +22,4 @@ export interface UserInfo {
 }
 export interface AuthInfo { user: UserInfo; roles: string[] }
 export interface LoginResult { token: string; user: AuthInfo }
-export interface Captcha { img: string; uuid: string }
+export type Captcha = { enabled: false } | { enabled?: true; img: string; uuid: string }

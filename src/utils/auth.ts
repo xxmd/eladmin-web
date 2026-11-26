@@ -4,15 +4,20 @@ import Config from '@/settings'
 const TokenKey = Config.TokenKey
 
 export function getToken() {
-  return Cookies.get(TokenKey)
+  return localStorage.getItem(TokenKey) ?? Cookies.get(TokenKey)
 }
 
 export function setToken(token: string, rememberMe: boolean) {
   if (rememberMe) {
-    return Cookies.set(TokenKey, token, { expires: Config.tokenCookieExpires })
-  } else return Cookies.set(TokenKey, token)
+    localStorage.setItem(TokenKey, token)
+    Cookies.remove(TokenKey)
+  } else {
+    localStorage.removeItem(TokenKey)
+    Cookies.set(TokenKey, token)
+  }
 }
 
 export function removeToken() {
-  return Cookies.remove(TokenKey)
+  localStorage.removeItem(TokenKey)
+  Cookies.remove(TokenKey)
 }

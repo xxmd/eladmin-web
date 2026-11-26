@@ -14,12 +14,12 @@
           <template #prefix><svg-icon  icon-class="password" class="el-input__icon input-icon" /></template>
         </el-input>
       </el-form-item>
-      <el-form-item prop="code">
+      <el-form-item v-if="captcha && captcha.enabled !== false" prop="code">
         <el-input v-model="loginForm.code" auto-complete="off" placeholder="验证码" style="width: 63%" @keyup.enter="handleLogin">
           <template #prefix><svg-icon  icon-class="validCode" class="el-input__icon input-icon" /></template>
         </el-input>
         <div class="login-code">
-          <img :src="codeUrl" @click="getCode">
+          <img :src="captcha.img" @click="getCode">
         </div>
       </el-form-item>
       <el-checkbox v-model="loginForm.rememberMe" style="margin:0 0 25px 0;">
@@ -49,6 +49,7 @@ import { ElNotification, type FormInstance, type FormRules } from 'element-plus'
 import { encrypt } from '@/utils/rsaEncrypt'
 import Config from '@/settings'
 import { getCodeImg } from '@/api/login'
+import type { Captcha } from '@/types/api'
 import Cookies from 'js-cookie'
 import Background from '@/assets/images/background.jpeg'
 
@@ -56,7 +57,7 @@ defineOptions({ name: 'Login' })
 const route = useRoute()
 const router = useRouter()
 const store = useStore()
-const codeUrl = ref('')
+const captcha = ref<Captcha>()
 const loading = ref(false)
 const cookiePass = Cookies.get('password') || ''
 const loginFormRef = ref<FormInstance>()
@@ -68,7 +69,12 @@ const loginRules: FormRules = {
 }
 const redirect = computed(() => typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/') && !route.query.redirect.startsWith('//') ? route.query.redirect : '/')
 async function getCode() {
-  try { const result = await getCodeImg(); codeUrl.value = result.img; loginForm.uuid = result.uuid } catch { /* request layer displays API errors */ }
+  try {
+    const result = await getCodeImg()
+    captcha.value = result
+    loginForm.code = ''
+    loginForm.uuid = result.enabled === false ? '' : result.uuid
+  } catch { /* request layer displays API errors */ }
 }
 async function handleLogin() {
   if (loading.value || !await loginFormRef.value?.validate().catch(() => false)) return
